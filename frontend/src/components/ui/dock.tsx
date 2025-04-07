@@ -20,8 +20,21 @@ import {
   useState,
 } from "react";
 import { cn } from "@/lib/utils";
-import { Home, FileText, Server, MessageSquare, Settings } from "lucide-react";
+import {
+  Home,
+  FileText,
+  Server,
+  MessageSquare,
+  Settings,
+  LogIn,
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import {
+  useUser,
+  useClerk,
+  UserButton,
+  SignInButton,
+} from "@clerk/clerk-react";
 
 const DOCK_HEIGHT = 128;
 const DEFAULT_MAGNIFICATION = 80;
@@ -240,10 +253,23 @@ function DockIcon({ children, className, ...rest }: DockIconProps) {
   );
 }
 
+// Add this new component for the separator
+function DockSeparator() {
+  return (
+    <div
+      className="mx-2 h-8 w-px self-center bg-white/20"
+      role="separator"
+      aria-orientation="vertical"
+    />
+  );
+}
+
 function AppDock() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user } = useUser();
+  const { openSignIn } = useClerk();
 
   return (
     <Dock className="bg-black/30 backdrop-blur-md border border-white/10">
@@ -303,8 +329,35 @@ function AppDock() {
           Settings
         </DockLabel>
       </DockItem>
+
+      {/* Add vertical separator */}
+      <DockSeparator />
+
+      {/* Improved sign in button */}
+      <DockItem
+        onClick={() => {
+          if (!user) {
+            openSignIn(); // Opens Clerk sign-in modal
+          } else {
+            navigate("/profile");
+          }
+        }}
+        isActive={currentPath === "/profile"}
+      >
+        <DockIcon>
+          {user ? (
+            <UserButton afterSignOutUrl="/" />
+          ) : (
+            <LogIn className="h-6 w-6 text-neutral-200" />
+          )}
+        </DockIcon>
+        <DockLabel className="bg-black/80 text-white border-neutral-800">
+          {user ? "Profile" : "Sign In"}
+        </DockLabel>
+      </DockItem>
     </Dock>
   );
 }
 
-export { Dock, DockIcon, DockItem, DockLabel, AppDock };
+// Update the exports to include the new component
+export { Dock, DockIcon, DockItem, DockLabel, DockSeparator, AppDock };
