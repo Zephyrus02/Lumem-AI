@@ -140,6 +140,8 @@ function Dock({
   );
 }
 
+// Modify the DockItem function to track click state:
+
 function DockItem({
   children,
   className,
@@ -149,6 +151,8 @@ function DockItem({
   const ref = useRef<HTMLDivElement>(null);
   const { distance, magnification, mouseX, spring } = useDock();
   const isHovered = useMotionValue(0);
+  // Add this state to track if item was clicked
+  const [isClicked, setIsClicked] = useState(false);
 
   const mouseDistance = useTransform(mouseX, (val) => {
     const domRect = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
@@ -163,6 +167,15 @@ function DockItem({
 
   const width = useSpring(widthTransform, spring);
 
+  // Handle click on dock item
+  const handleClick = () => {
+    setIsClicked(true);
+    // Reset click state after a delay
+    setTimeout(() => setIsClicked(false), 2000);
+    // Call the original onClick handler
+    onClick?.();
+  };
+
   return (
     <motion.div
       ref={ref}
@@ -171,7 +184,7 @@ function DockItem({
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
       onBlur={() => isHovered.set(0)}
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         "relative inline-flex items-center justify-center cursor-pointer",
         className
@@ -181,7 +194,7 @@ function DockItem({
       aria-haspopup="true"
     >
       {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement<any>, { width, isHovered })
+        cloneElement(child as React.ReactElement<any>, { width, isHovered, isClicked })
       )}
 
       {isActive && (
@@ -333,20 +346,29 @@ function AppDock() {
       {/* Add vertical separator */}
       <DockSeparator />
 
-      {/* Improved sign in button */}
+      {/* Sign in/Profile button */}
       <DockItem
         onClick={() => {
           if (!user) {
             openSignIn(); // Opens Clerk sign-in modal
-          } else {
-            navigate("/profile");
           }
+          // No navigation for logged in users - the UserButton will handle its own clicks
         }}
         isActive={currentPath === "/profile"}
       >
         <DockIcon>
           {user ? (
-            <UserButton afterSignOutUrl="/" />
+            <div onClick={(e) => e.stopPropagation()}>
+              <UserButton 
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    rootBox: 'h-6 w-6',
+                    avatarBox: 'h-6 w-6'
+                  }
+                }}
+              />
+            </div>
           ) : (
             <LogIn className="h-6 w-6 text-neutral-200" />
           )}
