@@ -5,6 +5,7 @@ import { DocumentationPage } from "@/components/ui/documentation";
 import { Suspense } from "react";
 import { ConnectLLMPage } from "@/components/ui/connectLLMs";
 import { ChatPage } from "./components/ui/chat";
+import { SettingsPage } from "./components/ui/settings";
 
 // Fallback component for loading states
 const LoadingFallback = () => (
@@ -55,7 +56,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/settings" element={<HeroGeometric />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </PageWrapper>
       </BrowserRouter>
