@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HeroGeometric } from "@/components/ui/hero";
 import { DocumentationPage } from "@/components/ui/documentation";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+// import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 import { Suspense } from "react";
+import { ConnectLLMPage } from "@/components/ui/connectLLMs";
 
 // Fallback component for loading states
 const LoadingFallback = () => (
@@ -13,10 +14,11 @@ const LoadingFallback = () => (
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => (
   <>
-    <SignedIn>{children}</SignedIn>
-    <SignedOut>
-      <RedirectToSignIn />
-    </SignedOut>
+    {/* <SignedIn>{children}</SignedIn> */}
+    {/* <SignedOut> */}
+      {/* <RedirectToSignIn /> */}
+    {/* </SignedOut> */}
+    {children}
   </>
 );
 
@@ -32,7 +34,7 @@ function App() {
             path="/connect"
             element={
               <ProtectedRoute>
-                <HeroGeometric />
+                <ConnectLLMPage />
               </ProtectedRoute>
             }
           />

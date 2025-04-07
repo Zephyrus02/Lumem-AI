@@ -33,7 +33,6 @@ import {
   useUser,
   useClerk,
   UserButton,
-  SignInButton,
 } from "@clerk/clerk-react";
 
 const DOCK_HEIGHT = 128;
