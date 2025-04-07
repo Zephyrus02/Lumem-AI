@@ -4,10 +4,11 @@ import { DocumentationPage } from "@/components/ui/documentation";
 // import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 import { Suspense } from "react";
 import { ConnectLLMPage } from "@/components/ui/connectLLMs";
+import { ChatPage } from "./components/ui/chat";
 
 // Fallback component for loading states
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[#030303]">
+  <div className="min-h-screen flex items-center justify-center bg-[#030303] overflow-hidden">
     <div className="text-white/60">Loading...</div>
   </div>
 );
@@ -22,32 +23,41 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => (
   </>
 );
 
+// Add a global layout wrapper to enforce overflow hidden
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="overflow-hidden">
+    {children}
+  </div>
+);
+
 function App() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <BrowserRouter>
-        <Routes>
-          {/* Public Route */}
-          <Route path="/" element={<HeroGeometric />} />
-          <Route path="/docs" element={<DocumentationPage />} />
-          <Route
-            path="/connect"
-            element={
-              <ProtectedRoute>
-                <ConnectLLMPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute>
-                <HeroGeometric />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/settings" element={<HeroGeometric />} />
-        </Routes>
+        <PageWrapper>
+          <Routes>
+            {/* Public Route */}
+            <Route path="/" element={<HeroGeometric />} />
+            <Route path="/docs" element={<DocumentationPage />} />
+            <Route
+              path="/connect"
+              element={
+                <ProtectedRoute>
+                  <ConnectLLMPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <ChatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/settings" element={<HeroGeometric />} />
+          </Routes>
+        </PageWrapper>
       </BrowserRouter>
     </Suspense>
   );
