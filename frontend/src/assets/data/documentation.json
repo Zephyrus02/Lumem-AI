@@ -1,0 +1,495 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Getting Started",
+    "topics": [
+      {
+        "id": "introduction",
+        "title": "Introduction",
+        "content": {
+          "title": "Introduction to Lumen AI",
+          "paragraphs": [
+            "Lumen AI illuminates your digital world with AI at your fingertips. It provides instant access to AI capabilities from anywhere on your screen, without switching applications or context.",
+            "With a simple keyboard shortcut, you can interact with any AI model directly from your current workspace, making AI assistance seamlessly integrated into your workflow."
+          ]
+        }
+      },
+      {
+        "id": "installation",
+        "title": "Installation",
+        "content": {
+          "title": "Installing Lumen AI",
+          "description": "Getting started with Lumen AI is simple. Follow these steps to install the application on your system:",
+          "sections": [
+            {
+              "title": "macOS Installation",
+              "type": "ordered-list",
+              "items": [
+                "Download the latest Lumen.dmg file from our website",
+                "Open the DMG file and drag Lumen to your Applications folder",
+                "Launch Lumen from your Applications folder",
+                "If prompted, allow accessibility permissions for keyboard shortcuts"
+              ]
+            },
+            {
+              "title": "Windows Installation",
+              "type": "ordered-list", 
+              "items": [
+                "Download the Lumen Setup.exe from our website",
+                "Run the installer and follow the on-screen instructions",
+                "Launch Lumen from the Start menu or desktop shortcut"
+              ]
+            },
+            {
+              "title": "System Requirements",
+              "type": "unordered-list",
+              "items": [
+                "macOS 10.15 (Catalina) or higher",
+                "Windows 10 or higher",
+                "Minimum 4GB RAM (8GB recommended)",
+                "500MB free disk space",
+                "Internet connection for API-based models"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "quick-start",
+        "title": "Quick Start Guide",
+        "content": {
+          "title": "Quick Start Guide",
+          "description": "Lumen AI is designed to be simple and intuitive. Here's how to get started immediately:",
+          "sections": [
+            {
+              "title": "Basic Usage",
+              "type": "ordered-list",
+              "items": [
+                "Press the keyboard shortcut (Cmd+L on macOS, Ctrl+L on Windows) from any application",
+                "Type your prompt or question in the popup window",
+                "Press Enter to get the AI response",
+                "Click outside the popup or press Escape to dismiss it"
+              ]
+            },
+            {
+              "title": "Using with Selected Text",
+              "type": "ordered-list",
+              "items": [
+                "Select text in any application",
+                "Press the keyboard shortcut (Cmd+L/Ctrl+L)",
+                "The selected text will automatically appear in the prompt",
+                "Add instructions for what you want the AI to do with the text",
+                "To replace the selected text with the AI response, press Cmd+Return (macOS) or Ctrl+Enter (Windows)"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "key-features",
+    "title": "Key Features",
+    "topics": [
+      {
+        "id": "keyboard-shortcuts",
+        "title": "Keyboard Shortcuts",
+        "content": {
+          "title": "Keyboard Shortcuts",
+          "description": "Lumen AI is designed for keyboard-first interaction, allowing you to stay in your workflow.",
+          "shortcuts": [
+            {
+              "title": "Global Shortcuts",
+              "items": [
+                {
+                  "action": "Open Lumen AI",
+                  "keys": ["Cmd + L", "Ctrl + L"]
+                },
+                {
+                  "action": "Close popup",
+                  "keys": ["Esc"]
+                },
+                {
+                  "action": "Replace selected text",
+                  "keys": ["Cmd + Return", "Ctrl + Enter"]
+                }
+              ]
+            },
+            {
+              "title": "Within Popup",
+              "items": [
+                {
+                  "action": "Send prompt",
+                  "keys": ["Enter"]
+                },
+                {
+                  "action": "Insert line break",
+                  "keys": ["Shift + Enter"]
+                },
+                {
+                  "action": "Copy response",
+                  "keys": ["Cmd + C", "Ctrl + C"]
+                },
+                {
+                  "action": "Clear input",
+                  "keys": ["Cmd + Backspace", "Ctrl + Backspace"]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "text-selection",
+        "title": "Text Selection & Replacement",
+        "content": {
+          "title": "Text Selection & Replacement",
+          "paragraphs": [
+            "Lumen AI intelligently works with text you select in any application, making it powerful for editing, refining, or generating content."
+          ],
+          "sections": [
+            {
+              "title": "Auto-detection of Selected Text",
+              "type": "unordered-list",
+              "items": [
+                "Automatically captures selected text when you trigger the shortcut",
+                "Works across virtually all applications including text editors, browsers, and office applications",
+                "Supports formatted text, code snippets, and plain text"
+              ]
+            },
+            {
+              "title": "Text Replacement",
+              "type": "unordered-list",
+              "items": [
+                "Replace selected text with AI-generated content in most editable fields",
+                "Perfect for rewriting, improving, or transforming existing text",
+                "Use Cmd+Return (macOS) or Ctrl+Enter (Windows) to apply the replacement"
+              ]
+            },
+            {
+              "title": "Common Use Cases",
+              "type": "unordered-list",
+              "items": [
+                "Rewrite a paragraph to be more concise or formal",
+                "Fix grammar and spelling errors in selected text",
+                "Translate selected text to another language",
+                "Explain or improve code snippets",
+                "Generate a response to an email"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "ai-models",
+    "title": "AI Models",
+    "topics": [
+      {
+        "id": "connecting-models",
+        "title": "Connecting AI Models",
+        "content": {
+          "title": "Connecting AI Models",
+          "paragraphs": [
+            "Lumen AI supports both local and cloud-based AI models, giving you flexibility based on your needs for privacy, performance, and capabilities."
+          ],
+          "sections": [
+            {
+              "title": "Local Models with Ollama",
+              "type": "unordered-list",
+              "items": [
+                "Run AI completely locally for privacy and offline use",
+                "Compatible with all models supported by Ollama",
+                "No API keys or subscriptions required",
+                "Navigate to Settings → AI Models → Local Models to configure"
+              ]
+            },
+            {
+              "title": "Cloud API Models",
+              "type": "unordered-list",
+              "items": [
+                "Connect to powerful cloud-based models for enhanced capabilities",
+                "Supports OpenAI (GPT models), Anthropic (Claude), Google (Gemini), and others",
+                "Requires API keys from respective providers",
+                "Set up in Settings → AI Models → Cloud Models"
+              ]
+            },
+            {
+              "title": "Switching Between Models",
+              "type": "unordered-list",
+              "items": [
+                "Quickly switch active models from the dropdown in the popup interface",
+                "Set default models for different types of tasks",
+                "Create model presets with different parameters for specialized tasks"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "model-settings",
+        "title": "Model Settings & Parameters",
+        "content": {
+          "title": "Model Settings & Parameters",
+          "description": "Fine-tune how your AI models respond with customizable parameters:",
+          "sections": [
+            {
+              "title": "Temperature",
+              "type": "unordered-list",
+              "items": [
+                "Controls response creativity and randomness",
+                "Lower values (0.1-0.5): More deterministic, factual responses",
+                "Higher values (0.7-1.0): More creative, varied outputs",
+                "Adjust in Settings → AI Models → Parameters"
+              ]
+            },
+            {
+              "title": "Context Length",
+              "type": "unordered-list",
+              "items": [
+                "Determines how much conversation history the model considers",
+                "Longer context enables more coherent multi-turn interactions",
+                "Adjust based on your needs and model capabilities"
+              ]
+            },
+            {
+              "title": "System Prompts",
+              "type": "unordered-list",
+              "items": [
+                "Define default instructions for your AI models",
+                "Create specialized prompts for different tasks (coding, writing, analysis)",
+                "Configure in Settings → AI Models → System Prompts"
+              ]
+            },
+            {
+              "type": "alert",
+              "alertType": "info",
+              "alertTitle": "Performance Tip",
+              "alertContent": "For most editing and writing tasks, a lower temperature (0.3-0.5) usually provides more consistent results. For creative tasks, try higher values."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "customization",
+    "title": "Customization",
+    "topics": [
+      {
+        "id": "appearance",
+        "title": "Appearance & Behavior",
+        "content": {
+          "title": "Appearance & Behavior",
+          "description": "Customize how Lumen AI looks and behaves to match your workflow:",
+          "sections": [
+            {
+              "title": "Popup Position",
+              "type": "unordered-list",
+              "items": [
+                "Center: Default position in the middle of the screen",
+                "Near Cursor: Appears close to your mouse position",
+                "Fixed Position: Always appears in a designated screen location",
+                "Configure in Settings → Appearance → Popup Position"
+              ]
+            },
+            {
+              "title": "Theme Options",
+              "type": "unordered-list",
+              "items": [
+                "System: Follows your system light/dark preference",
+                "Light: Clean, bright interface",
+                "Dark: Reduced eye strain in low-light environments",
+                "Custom: Create your own color scheme"
+              ]
+            },
+            {
+              "title": "Size & Opacity",
+              "type": "unordered-list",
+              "items": [
+                "Adjust popup size to balance screen real estate and readability",
+                "Configure transparency to see content behind the popup",
+                "Set in Settings → Appearance → Size & Opacity"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "custom-shortcuts",
+        "title": "Custom Shortcuts",
+        "content": {
+          "title": "Custom Keyboard Shortcuts",
+          "description": "Personalize keyboard shortcuts to fit your workflow:",
+          "sections": [
+            {
+              "title": "Modifying Shortcuts",
+              "type": "ordered-list",
+              "items": [
+                "Open Settings → Keyboard Shortcuts",
+                "Find the action you want to customize",
+                "Click to edit and press your desired key combination",
+                "Save changes"
+              ]
+            },
+            {
+              "title": "Shortcut Conflicts",
+              "type": "unordered-list",
+              "items": [
+                "The system will warn you about potential conflicts with existing shortcuts",
+                "Some applications may override global shortcuts",
+                "Use modifier keys (Alt, Shift) with standard shortcuts to avoid conflicts"
+              ]
+            },
+            {
+              "type": "alert",
+              "alertType": "warning",
+              "alertTitle": "Accessibility Permissions",
+              "alertContent": "Custom shortcuts may require re-authorizing accessibility permissions. Follow the prompts if asked to grant permissions after changing shortcuts."
+            }
+          ]
+        }
+      },
+      {
+        "id": "workflows",
+        "title": "Custom Workflows",
+        "content": {
+          "title": "Custom Workflows",
+          "paragraphs": [
+            "Create specialized AI workflows for repeated tasks to save time and ensure consistent results."
+          ],
+          "sections": [
+            {
+              "title": "Creating a Workflow",
+              "type": "ordered-list",
+              "items": [
+                "Go to Settings → Workflows → Create New",
+                "Name your workflow (e.g., \"Email Response\", \"Code Refactor\")",
+                "Select the AI model to use",
+                "Create a template prompt with placeholders for selected text",
+                "Optionally assign a dedicated shortcut"
+              ]
+            },
+            {
+              "title": "Example Workflows",
+              "type": "unordered-list",
+              "items": [
+                "Grammar Check: Fix spelling and grammar in selected text",
+                "Summarize: Create a concise summary of selected content",
+                "Explain Code: Generate an explanation of selected code",
+                "Translate: Convert selected text to another language",
+                "Format Email: Professionalize an email draft"
+              ]
+            },
+            {
+              "title": "Using Workflows",
+              "type": "unordered-list",
+              "items": [
+                "Select text and use the workflow's custom shortcut",
+                "Or open Lumen AI and select from the Workflows dropdown",
+                "The workflow will process your selected text with the predefined prompt"
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "troubleshooting",
+    "title": "Troubleshooting",
+    "topics": [
+      {
+        "id": "common-issues",
+        "title": "Common Issues",
+        "content": {
+          "title": "Common Issues & Solutions",
+          "sections": [
+            {
+              "title": "Shortcut Not Working",
+              "type": "unordered-list",
+              "items": [
+                "Check if accessibility permissions are granted in System Preferences/Settings",
+                "Verify the shortcut isn't being overridden by another application",
+                "Try restarting Lumen AI or your computer",
+                "Reinstall the app if permissions seem correct but issues persist"
+              ]
+            },
+            {
+              "title": "Text Selection Issues",
+              "type": "unordered-list",
+              "items": [
+                "Some applications use non-standard text fields that may not work with auto-detection",
+                "Try copying text to clipboard before invoking Lumen AI",
+                "For web applications, ensure the browser extension is installed if available"
+              ]
+            },
+            {
+              "title": "AI Model Connection Problems",
+              "type": "unordered-list",
+              "items": [
+                "For local models: Ensure Ollama is running and the model is downloaded",
+                "For cloud models: Verify your API key is correct and has sufficient quota",
+                "Check your internet connection for cloud-based models",
+                "Try switching to a different model to isolate the issue"
+              ]
+            },
+            {
+              "title": "Performance Issues",
+              "type": "unordered-list",
+              "items": [
+                "Local models: Consider using smaller models if responses are slow",
+                "Reduce the context length for faster responses",
+                "Close other resource-intensive applications",
+                "For cloud models: Check your internet connection speed"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": "advanced-troubleshooting",
+        "title": "Advanced Troubleshooting",
+        "content": {
+          "title": "Advanced Troubleshooting",
+          "sections": [
+            {
+              "title": "Viewing Logs",
+              "type": "ordered-list",
+              "items": [
+                "Open Settings → Advanced → View Logs",
+                "Look for error messages related to your issue",
+                "Filter logs by severity or component"
+              ]
+            },
+            {
+              "title": "Resetting Settings",
+              "type": "unordered-list",
+              "items": [
+                "Reset all settings: Settings → Advanced → Reset All Settings",
+                "Reset specific settings: Navigate to the relevant settings section and use the reset option",
+                "Note that this will remove custom shortcuts and workflows"
+              ]
+            },
+            {
+              "title": "Cleaning Cache",
+              "type": "unordered-list",
+              "items": [
+                "Clear conversation history: Settings → Advanced → Clear History",
+                "Remove temporary files: Settings → Advanced → Clean Cache",
+                "This can help resolve performance issues or strange behavior"
+              ]
+            },
+            {
+              "type": "alert",
+              "alertType": "info",
+              "alertTitle": "Getting Support",
+              "alertContent": "If you continue experiencing issues, visit our support forum or submit a bug report with your logs attached for more personalized assistance."
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
