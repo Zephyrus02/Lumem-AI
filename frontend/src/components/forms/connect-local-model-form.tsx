@@ -1,114 +1,298 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { ChevronDown, AlertCircle, RefreshCw } from "lucide-react";
 
-// Local model providers and their models
+// Import Wails runtime
+declare global {
+  interface Window {
+    go: {
+      main: {
+        App: {
+          ScanLocalModels: (provider: string) => Promise<ScanResult>;
+        };
+      };
+    };
+  }
+}
+
+// Local model providers with their default endpoints
 const localProviders = [
-  { id: 'ollama', name: 'Ollama', models: ['llama2', 'llama3', 'mistral', 'vicuna', 'orca-mini'] },
-  { id: 'localai', name: 'LocalAI', models: ['phi-2', 'tinyllama', 'gemma', 'neural-chat'] },
-  { id: 'text-generation-webui', name: 'Text Generation WebUI', models: ['llama2', 'llama3', 'mistral', 'falcon'] },
+  {
+    id: "ollama",
+    name: "Ollama",
+    defaultEndpoint: "http://localhost:11434",
+    apiPath: "/api/tags",
+  },
+  {
+    id: "lmstudio",
+    name: "LM Studio",
+    defaultEndpoint: "http://localhost:1234",
+    apiPath: "/v1/models",
+  },
+  {
+    id: "docker",
+    name: "Docker",
+    defaultEndpoint: "http://localhost:8080",
+    apiPath: "/models",
+  },
+  {
+    id: "huggingface",
+    name: "Hugging Face Transformers",
+    defaultEndpoint: "http://localhost:8000",
+    apiPath: "/models",
+  },
 ];
 
-export const ConnectLocalModelsForm = () => {
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
-  const [endpoint, setEndpoint] = useState('http://localhost:11434');
-  const [isConnecting, setIsConnecting] = useState(false);
+interface Model {
+  name: string;
+  size?: string;
+  modified?: string;
+}
 
-  const models = localProviders.find(p => p.id === selectedProvider)?.models || [];
+interface ScanResult {
+  models: Model[];
+  error?: string;
+  success: boolean;
+  isLoading?: boolean;
+}
+
+export const ConnectLocalModelsForm = () => {
+  const [selectedProvider, setSelectedProvider] = useState("");
+  const [selectedModel, setSelectedModel] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [scanResult, setScanResult] = useState<ScanResult>({
+    models: [],
+    success: false,
+    isLoading: false,
+  });
+
+  // Scan for models when provider changes
+  useEffect(() => {
+    if (selectedProvider) {
+      scanForModels();
+    }
+  }, [selectedProvider]);
+
+  const scanForModels = async () => {
+    if (!selectedProvider) return;
+
+    setScanResult({ models: [], success: false, isLoading: true });
+    setSelectedModel("");
+
+    try {
+      // Call the backend Go function with just the provider
+      const result = await window.go.main.App.ScanLocalModels(selectedProvider);
+
+      setScanResult({
+        models: result.models || [],
+        error: result.error,
+        success: result.success,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Error scanning models:", error);
+      setScanResult({
+        models: [],
+        error: `Failed to scan for models: ${error}`,
+        success: false,
+        isLoading: false,
+      });
+    }
+  };
 
   const handleConnect = () => {
     setIsConnecting(true);
     // Simulate connection process
     setTimeout(() => {
       setIsConnecting(false);
+      // Here you would typically save the connection details
+      console.log("Connected to:", {
+        selectedProvider,
+        selectedModel,
+      });
     }, 1500);
   };
 
+  const handleRefreshModels = () => {
+    scanForModels();
+  };
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className="mt-6 w-full md:w-6/6 lg:w-6/6 mx-auto relative"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.03] to-purple-500/[0.03] rounded-xl -z-10" />
-      
+
       <div className="bg-black/40 backdrop-blur-sm rounded-xl border border-white/10 p-6">
         <div className="space-y-5">
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-300">Local Provider</label>
+            <label className="block text-sm font-medium text-neutral-300">
+              Local Provider
+            </label>
             <div className="relative">
-              <select 
+              <select
                 value={selectedProvider}
                 onChange={(e) => setSelectedProvider(e.target.value)}
                 className="w-full bg-black/60 border border-white/10 rounded-md px-3 py-2.5 text-white/80 
                   appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent
                   transition-all duration-200"
               >
-                <option value="" disabled>Select provider</option>
-                {localProviders.map(provider => (
-                  <option key={provider.id} value={provider.id}>{provider.name}</option>
+                <option value="" disabled>
+                  Select provider
+                </option>
+                {localProviders.map((provider) => (
+                  <option key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </option>
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
             </div>
-            <p className="text-xs text-neutral-500 mt-1">Choose your local LLM provider</p>
+            <p className="text-xs text-neutral-500 mt-1">
+              Choose your local LLM provider
+            </p>
           </div>
-          
+
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-300">Model</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-neutral-300">
+                Available Models
+              </label>
+              {selectedProvider && (
+                <button
+                  onClick={handleRefreshModels}
+                  disabled={scanResult.isLoading}
+                  className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 
+                    disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <RefreshCw
+                    className={`h-3 w-3 ${
+                      scanResult.isLoading ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh
+                </button>
+              )}
+            </div>
+
             <div className="relative">
-              <select 
+              <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                disabled={!selectedProvider}
+                disabled={
+                  !selectedProvider ||
+                  scanResult.isLoading ||
+                  scanResult.models.length === 0
+                }
                 className="w-full bg-black/60 border border-white/10 rounded-md px-3 py-2.5 text-white/80 
                   appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent
                   disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
-                <option value="" disabled>Select model</option>
-                {models.map(model => (
-                  <option key={model} value={model}>{model}</option>
-                ))}
+                {scanResult.isLoading ? (
+                  <option value="" disabled>
+                    Scanning for models...
+                  </option>
+                ) : scanResult.error ? (
+                  <option value="" disabled>
+                    Error scanning models
+                  </option>
+                ) : scanResult.models.length === 0 && selectedProvider ? (
+                  <option value="" disabled>
+                    No models available locally
+                  </option>
+                ) : (
+                  <>
+                    <option value="" disabled>
+                      Select model
+                    </option>
+                    {scanResult.models.map((model) => (
+                      <option key={model.name} value={model.name}>
+                        {model.name} {model.size && `(${model.size})`}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
             </div>
-            <p className="text-xs text-neutral-500 mt-1">Select the specific model to use</p>
+
+            {scanResult.isLoading && (
+              <div className="flex items-center gap-2 text-xs text-neutral-400">
+                <div className="animate-spin h-3 w-3 border border-neutral-400 border-t-transparent rounded-full"></div>
+                Scanning for locally available models...
+              </div>
+            )}
+
+            {scanResult.error && (
+              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-md p-2">
+                <AlertCircle className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                <span>{scanResult.error}</span>
+              </div>
+            )}
+
+            {!scanResult.isLoading &&
+              !scanResult.error &&
+              scanResult.models.length === 0 &&
+              selectedProvider && (
+                <div className="flex items-center gap-2 text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-md p-2">
+                  <AlertCircle className="h-3 w-3" />
+                  No models found. Make sure {selectedProvider} is running and
+                  has models installed.
+                </div>
+              )}
+
+            {scanResult.models.length > 0 && (
+              <p className="text-xs text-neutral-500 mt-1">
+                Found {scanResult.models.length} model
+                {scanResult.models.length !== 1 ? "s" : ""} available locally
+              </p>
+            )}
           </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-300">Endpoint URL</label>
-            <input 
-              type="text"
-              value={endpoint}
-              onChange={(e) => setEndpoint(e.target.value)}
-              placeholder="http://localhost:11434"
-              className="w-full bg-black/60 border border-white/10 rounded-md px-3 py-2.5 text-white/80 
-                focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent
-                transition-all duration-200"
-            />
-            <p className="text-xs text-neutral-500 mt-1">The API endpoint where your model is hosted</p>
-          </div>
-          
-          <button 
+
+          <button
             onClick={handleConnect}
-            disabled={!selectedProvider || !selectedModel || !endpoint || isConnecting}
+            disabled={
+              !selectedProvider ||
+              !selectedModel ||
+              isConnecting ||
+              scanResult.isLoading
+            }
             className="mt-4 w-full relative overflow-hidden group bg-gradient-to-r from-indigo-500 to-purple-600 
               hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-md 
               transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
           >
-            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-400/0 via-white/20 to-indigo-400/0 
+            <div
+              className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-400/0 via-white/20 to-indigo-400/0 
               opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] 
-              transition-all duration-1000"></div>
-            
+              transition-all duration-1000"
+            ></div>
+
             {isConnecting ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Connecting...
               </span>
