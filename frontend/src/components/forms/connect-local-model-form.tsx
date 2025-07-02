@@ -32,12 +32,6 @@ const localProviders = [
     apiPath: "/v1/models",
   },
   {
-    id: "docker",
-    name: "Docker",
-    defaultEndpoint: "http://localhost:8080",
-    apiPath: "/models",
-  },
-  {
     id: "huggingface",
     name: "Hugging Face Transformers",
     defaultEndpoint: "http://localhost:8000",
@@ -58,7 +52,13 @@ interface ScanResult {
   isLoading?: boolean;
 }
 
-export const ConnectLocalModelsForm = () => {
+interface ConnectLocalModelsFormProps {
+  onModelConnected?: (provider: string, model: string) => void;
+}
+
+export const ConnectLocalModelsForm = ({
+  onModelConnected,
+}: ConnectLocalModelsFormProps) => {
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
@@ -112,6 +112,11 @@ export const ConnectLocalModelsForm = () => {
         selectedProvider,
         selectedModel,
       });
+
+      // Navigate to configure tab and pass the connected model info
+      if (onModelConnected) {
+        onModelConnected(selectedProvider, selectedModel);
+      }
     }, 1500);
   };
 

@@ -1,4 +1,4 @@
-export namespace main {
+export namespace connectors {
 	
 	export class Model {
 	    name: string;
