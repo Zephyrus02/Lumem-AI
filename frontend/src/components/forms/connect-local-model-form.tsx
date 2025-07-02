@@ -2,20 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ChevronDown, AlertCircle, RefreshCw } from "lucide-react";
-
-// Import Wails runtime
-declare global {
-  interface Window {
-    go: {
-      main: {
-        App: {
-          ScanLocalModels: (provider: string) => Promise<ScanResult>;
-        };
-      };
-    };
-  }
-}
+import {
+  ChevronDown,
+  AlertCircle,
+  RefreshCw,
+  Settings,
+  MessageSquare,
+} from "lucide-react";
 
 // Local model providers with their default endpoints
 const localProviders = [
@@ -54,14 +47,17 @@ interface ScanResult {
 
 interface ConnectLocalModelsFormProps {
   onModelConnected?: (provider: string, model: string) => void;
+  onChatWithModel?: (provider: string, model: string) => void;
 }
 
 export const ConnectLocalModelsForm = ({
   onModelConnected,
+  onChatWithModel,
 }: ConnectLocalModelsFormProps) => {
   const [selectedProvider, setSelectedProvider] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isStartingChat, setIsStartingChat] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult>({
     models: [],
     success: false,
@@ -102,13 +98,12 @@ export const ConnectLocalModelsForm = ({
     }
   };
 
-  const handleConnect = () => {
+  const handleConfigureModel = () => {
     setIsConnecting(true);
     // Simulate connection process
     setTimeout(() => {
       setIsConnecting(false);
-      // Here you would typically save the connection details
-      console.log("Connected to:", {
+      console.log("Configuring:", {
         selectedProvider,
         selectedModel,
       });
@@ -120,9 +115,29 @@ export const ConnectLocalModelsForm = ({
     }, 1500);
   };
 
+  const handleChatWithModel = () => {
+    setIsStartingChat(true);
+    // Simulate starting chat process
+    setTimeout(() => {
+      setIsStartingChat(false);
+      console.log("Starting chat with:", {
+        selectedProvider,
+        selectedModel,
+      });
+
+      // Navigate to chat interface
+      if (onChatWithModel) {
+        onChatWithModel(selectedProvider, selectedModel);
+      }
+    }, 1000);
+  };
+
   const handleRefreshModels = () => {
     scanForModels();
   };
+
+  const isButtonDisabled =
+    !selectedProvider || !selectedModel || scanResult.isLoading;
 
   return (
     <motion.div
@@ -259,52 +274,98 @@ export const ConnectLocalModelsForm = ({
             )}
           </div>
 
-          <button
-            onClick={handleConnect}
-            disabled={
-              !selectedProvider ||
-              !selectedModel ||
-              isConnecting ||
-              scanResult.isLoading
-            }
-            className="mt-4 w-full relative overflow-hidden group bg-gradient-to-r from-indigo-500 to-purple-600 
-              hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-md 
-              transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <div
-              className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-400/0 via-white/20 to-indigo-400/0 
-              opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] 
-              transition-all duration-1000"
-            ></div>
+          {/* Action Buttons */}
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={handleConfigureModel}
+              disabled={isButtonDisabled || isConnecting}
+              className="flex-1 relative overflow-hidden group bg-gradient-to-r from-indigo-500 to-purple-600 
+                hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-2.5 px-4 rounded-md 
+                transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <div
+                className="absolute inset-0 w-full h-full bg-gradient-to-r from-indigo-400/0 via-white/20 to-indigo-400/0 
+                opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] 
+                transition-all duration-1000"
+              ></div>
 
-            {isConnecting ? (
-              <span className="flex items-center justify-center">
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Connecting...
-              </span>
-            ) : (
-              <span>Connect Model</span>
-            )}
-          </button>
+              {isConnecting ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Connecting...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configure Model
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={handleChatWithModel}
+              disabled={isButtonDisabled || isStartingChat}
+              className="flex-1 relative overflow-hidden group bg-gradient-to-r from-emerald-500 to-teal-600 
+                hover:from-emerald-600 hover:to-teal-700 text-white font-medium py-2.5 px-4 rounded-md 
+                transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <div
+                className="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-400/0 via-white/20 to-emerald-400/0 
+                opacity-0 group-hover:opacity-100 transform translate-x-[-100%] group-hover:translate-x-[100%] 
+                transition-all duration-1000"
+              ></div>
+
+              {isStartingChat ? (
+                <span className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Starting Chat...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Chat with Model
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>

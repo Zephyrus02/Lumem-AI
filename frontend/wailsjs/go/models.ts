@@ -53,3 +53,30 @@ export namespace connectors {
 
 }
 
+export namespace main {
+	
+	export class ModelConfig {
+	    temperature: number;
+	    top_p: number;
+	    top_k: number;
+	    repeat_penalty: number;
+	    num_ctx: number;
+	    stop: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new ModelConfig(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.temperature = source["temperature"];
+	        this.top_p = source["top_p"];
+	        this.top_k = source["top_k"];
+	        this.repeat_penalty = source["repeat_penalty"];
+	        this.num_ctx = source["num_ctx"];
+	        this.stop = source["stop"];
+	    }
+	}
+
+}
+

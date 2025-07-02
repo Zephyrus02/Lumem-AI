@@ -8,6 +8,7 @@ import { AppDock } from "./dock";
 import { ConnectLocalModelsForm } from "@/components/forms/connect-local-model-form";
 import { ConnectCloudModelsForm } from "@/components/forms/connect-cloud-model-form";
 import { ModelConfigForm } from "@/components/forms/model-config-form";
+import { useChatContext } from "@/contexts/ChatContext";
 
 // Types for our data structure
 type Chapter = {
@@ -29,6 +30,15 @@ const ConnectLLMsContent = ({
   onModelConnected: (provider: string, model: string) => void;
 }) => {
   const [activeForm, setActiveForm] = useState<"local" | "cloud" | null>(null);
+  const { setSelectedModel, navigateToChat } = useChatContext();
+
+  const handleChatWithModel = (provider: string, model: string) => {
+    console.log("ConnectLLMs: Navigating to chat with", provider, model);
+    // Set the selected model in context
+    setSelectedModel(provider, model);
+    // Navigate to chat page
+    navigateToChat();
+  };
 
   return (
     <div>
@@ -95,11 +105,12 @@ const ConnectLLMsContent = ({
       </div>
 
       {activeForm === "local" && (
-        <ConnectLocalModelsForm onModelConnected={onModelConnected} />
+        <ConnectLocalModelsForm
+          onModelConnected={onModelConnected}
+          onChatWithModel={handleChatWithModel}
+        />
       )}
-      {activeForm === "cloud" && (
-        <ConnectCloudModelsForm />
-      )}
+      {activeForm === "cloud" && <ConnectCloudModelsForm />}
     </div>
   );
 };
@@ -110,6 +121,15 @@ const ConfigureLLMsContent = ({
 }: {
   connectedModel: { provider: string; model: string } | null;
 }) => {
+  const { setSelectedModel, navigateToChat } = useChatContext();
+
+  const handleChatWithModel = (provider: string, model: string) => {
+    // Set the selected model in context
+    setSelectedModel(provider, model);
+    // Navigate to chat page
+    navigateToChat();
+  };
+
   if (!connectedModel) {
     return (
       <div>
@@ -144,6 +164,7 @@ const ConfigureLLMsContent = ({
       <ModelConfigForm
         provider={connectedModel.provider}
         model={connectedModel.model}
+        onChatWithModel={handleChatWithModel}
       />
 
       <div className="mt-8 space-y-6">
