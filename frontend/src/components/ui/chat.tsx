@@ -1,24 +1,26 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  Send,
-  ChevronDown,
-  Settings,
-  Bot,
   User,
-  Cpu,
-  Cloud,
-  Check,
-  Copy,
-  MessageSquare,
+  Bot,
+  Send,
   Paperclip,
   X,
   File,
-  Image as ImageIcon,
+  ImageIcon,
+  ChevronDown,
+  MessageSquare,
+  Plus,
+  Cpu,
+  Cloud,
   RefreshCw,
+  Settings,
+  Check,
+  Copy,
+  Menu,
 } from "lucide-react";
 import { AppDock } from "./dock";
 
@@ -224,11 +226,307 @@ const FileAttachment = ({
 // Individual message component
 const ChatMessage = ({ message }: { message: Message }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(message.content);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const copyCodeBlock = (code: string, index: number) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCodeIndex(index);
+    setTimeout(() => setCopiedCodeIndex(null), 2000);
+  };
+
+  // Function to parse and format message content with code blocks
+  const formatMessageContent = (content: string) => {
+    // Split content by code blocks (both ``` and single backticks)
+    const parts = content.split(/(```[\s\S]*?```|`[^`\n]+`)/);
+
+    return parts.map((part, index) => {
+      // Handle triple backtick code blocks
+      if (part.startsWith("```") && part.endsWith("```")) {
+        const codeContent = part.slice(3, -3);
+        const lines = codeContent.split("\n");
+        const language = lines[0].trim();
+        const code = lines.slice(language ? 1 : 0).join("\n").trim();
+
+        return (
+          <div key={index} className="my-4 relative group">
+            <div className="bg-[#0f0f0f] border border-white/20 rounded-lg overflow-hidden">
+              {/* Code block header with language and copy button */}
+              <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a1a] border-b border-white/10">
+                <span className="text-xs text-white/60 font-mono">
+                  {language || "code"}
+                </span>
+                <button
+                  onClick={() => copyCodeBlock(code, index)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors ${
+                    copiedCodeIndex === index
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "hover:bg-white/10 text-white/60 hover:text-white/80"
+                  }`}
+                >
+                  {copiedCodeIndex === index ? (
+                    <>
+                      <Check className="h-3 w-3" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      Copy
+                    </>
+                  )}
+                </button>
+              </div>
+              {/* Code content with syntax highlighting */}
+              <pre className="p-4 overflow-x-auto bg-[#0f0f0f]">
+                <code className="text-sm leading-relaxed font-mono">
+                  {highlightCode(code, language)}
+                </code>
+              </pre>
+            </div>
+          </div>
+        );
+      }
+
+      // Handle inline code (single backticks)
+      if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+        const inlineCode = part.slice(1, -1);
+        return (
+          <code
+            key={index}
+            className="bg-black/40 text-indigo-300 px-1.5 py-0.5 rounded text-sm font-mono border border-white/10"
+          >
+            {inlineCode}
+          </code>
+        );
+      }
+
+      // Regular text - preserve line breaks
+      return (
+        <span key={index} className="whitespace-pre-wrap">
+          {part}
+        </span>
+      );
+    });
+  };
+
+  // Simple syntax highlighting function
+  const highlightCode = (code: string, language: string) => {
+    // If no language specified, return plain text
+    if (!language) {
+      return <span className="text-white/90">{code}</span>;
+    }
+
+    // Split code into lines for processing
+    const lines = code.split('\n');
+    
+    return (
+      <div className="block">
+        {lines.map((line, lineIndex) => (
+          <div key={lineIndex} className="block">
+            {highlightLine(line, language)}
+            {lineIndex < lines.length - 1 && <br />}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Highlight individual lines based on language
+  const highlightLine = (line: string, language: string) => {
+    const lowerLang = language.toLowerCase();
+    
+    // Python syntax highlighting
+    if (lowerLang === 'python' || lowerLang === 'py') {
+      return highlightPython(line);
+    }
+    
+    // JavaScript/TypeScript syntax highlighting
+    if (lowerLang === 'javascript' || lowerLang === 'js' || lowerLang === 'typescript' || lowerLang === 'ts' || lowerLang === 'tsx' || lowerLang === 'jsx') {
+      return highlightJavaScript(line);
+    }
+    
+    // Go syntax highlighting
+    if (lowerLang === 'go' || lowerLang === 'golang') {
+      return highlightGo(line);
+    }
+    
+    // CSS syntax highlighting
+    if (lowerLang === 'css' || lowerLang === 'scss' || lowerLang === 'sass') {
+      return highlightCSS(line);
+    }
+    
+    // HTML syntax highlighting
+    if (lowerLang === 'html' || lowerLang === 'xml') {
+      return highlightHTML(line);
+    }
+    
+    // JSON syntax highlighting
+    if (lowerLang === 'json') {
+      return highlightJSON(line);
+    }
+    
+    // Default: return plain text
+    return <span className="text-white/90">{line}</span>;
+  };
+
+  // Python syntax highlighting
+  const highlightPython = (line: string) => {
+    const keywords = ['import', 'from', 'def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'break', 'continue', 'pass', 'lambda', 'and', 'or', 'not', 'in', 'is', 'None', 'True', 'False'];
+    const functions = ['print', 'len', 'range', 'str', 'int', 'float', 'list', 'dict', 'set', 'tuple', 'pygame', 'display', 'set_mode', 'set_caption', 'image', 'load', 'event', 'get', 'quit', 'exit'];
+    
+    let result = line;
+    
+    // Comments first (so they don't get overridden)
+    result = result.replace(/(#.*$)/g, '<span style="color: #6b7280;">$1</span>');
+    
+    // Strings
+    result = result.replace(/(".*?"|'.*?')/g, '<span style="color: #10b981;">$1</span>');
+    
+    // Keywords
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #a855f7;">${keyword}</span>`);
+    });
+    
+    // Built-in functions
+    functions.forEach(func => {
+      const regex = new RegExp(`\\b${func}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #eab308;">${func}</span>`);
+    });
+    
+    // Numbers
+    result = result.replace(/\b\d+\.?\d*\b/g, '<span style="color: #f97316;">$&</span>');
+    
+    // Operators and special characters
+    result = result.replace(/([=+\-*/<>!&|%^])/g, '<span style="color: #64748b;">$1</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
+  };
+
+  // JavaScript/TypeScript syntax highlighting
+  const highlightJavaScript = (line: string) => {
+    const keywords = ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue', 'try', 'catch', 'finally', 'throw', 'new', 'this', 'class', 'extends', 'import', 'export', 'from', 'default', 'async', 'await', 'typeof', 'instanceof'];
+    const types = ['string', 'number', 'boolean', 'object', 'undefined', 'null', 'Array', 'Object', 'Promise'];
+    
+    let result = line;
+    
+    // Comments
+    result = result.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/g, '<span style="color: #6b7280;">$1</span>');
+    
+    // Strings
+    result = result.replace(/(`.*?`|".*?"|'.*?')/g, '<span style="color: #10b981;">$1</span>');
+    
+    // Keywords
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #a855f7;">${keyword}</span>`);
+    });
+    
+    // Types
+    types.forEach(type => {
+      const regex = new RegExp(`\\b${type}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #3b82f6;">${type}</span>`);
+    });
+    
+    // Numbers
+    result = result.replace(/\b\d+\.?\d*\b/g, '<span style="color: #f97316;">$&</span>');
+    
+    // Functions
+    result = result.replace(/(\w+)(?=\s*\()/g, '<span style="color: #eab308;">$1</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
+  };
+
+  // Go syntax highlighting
+  const highlightGo = (line: string) => {
+    const keywords = ['package', 'import', 'func', 'var', 'const', 'type', 'struct', 'interface', 'if', 'else', 'for', 'range', 'switch', 'case', 'default', 'break', 'continue', 'return', 'go', 'defer', 'select', 'chan', 'map'];
+    const types = ['int', 'int32', 'int64', 'uint', 'uint32', 'uint64', 'string', 'bool', 'byte', 'rune', 'float32', 'float64', 'error'];
+    
+    let result = line;
+    
+    // Comments
+    result = result.replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/g, '<span style="color: #6b7280;">$1</span>');
+    
+    // Strings
+    result = result.replace(/(`.*?`|".*?")/g, '<span style="color: #10b981;">$1</span>');
+    
+    // Keywords
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #a855f7;">${keyword}</span>`);
+    });
+    
+    // Types
+    types.forEach(type => {
+      const regex = new RegExp(`\\b${type}\\b`, 'g');
+      result = result.replace(regex, `<span style="color: #3b82f6;">${type}</span>`);
+    });
+    
+    // Numbers
+    result = result.replace(/\b\d+\.?\d*\b/g, '<span style="color: #f97316;">$&</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
+  };
+
+  // CSS syntax highlighting
+  const highlightCSS = (line: string) => {
+    let result = line;
+    
+    // Comments
+    result = result.replace(/(\/\*[\s\S]*?\*\/)/g, '<span style="color: #6b7280;">$1</span>');
+    
+    // Properties
+    result = result.replace(/([a-zA-Z-]+)(?=\s*:)/g, '<span style="color: #3b82f6;">$1</span>');
+    
+    // Values
+    result = result.replace(/:(\s*[^;]+)/g, ': <span style="color: #10b981;">$1</span>');
+    
+    // Selectors
+    result = result.replace(/^(\s*[.#]?[\w-]+)/g, '<span style="color: #eab308;">$1</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
+  };
+
+  // HTML syntax highlighting
+  const highlightHTML = (line: string) => {
+    let result = line;
+    
+    // Comments
+    result = result.replace(/(<!--[\s\S]*?-->)/g, '<span style="color: #6b7280;">$1</span>');
+    
+    // Tags
+    result = result.replace(/(<\/?)([\w-]+)/g, '$1<span style="color: #3b82f6;">$2</span>');
+    
+    // Attributes
+    result = result.replace(/(\w+)=/g, '<span style="color: #eab308;">$1</span>=');
+    
+    // Attribute values
+    result = result.replace(/="([^"]*)"/g, '="<span style="color: #10b981;">$1</span>"');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
+  };
+
+  // JSON syntax highlighting
+  const highlightJSON = (line: string) => {
+    let result = line;
+    
+    // Strings (keys and values)
+    result = result.replace(/"([^"]*)":/g, '"<span style="color: #3b82f6;">$1</span>":');
+    result = result.replace(/:\s*"([^"]*)"/g, ': "<span style="color: #10b981;">$1</span>"');
+    
+    // Numbers
+    result = result.replace(/:\s*(\d+\.?\d*)/g, ': <span style="color: #f97316;">$1</span>');
+    
+    // Booleans and null
+    result = result.replace(/:\s*(true|false|null)/g, ': <span style="color: #a855f7;">$1</span>');
+    
+    return <span dangerouslySetInnerHTML={{ __html: result }} />;
   };
 
   return (
@@ -274,8 +572,9 @@ const ChatMessage = ({ message }: { message: Message }) => {
             </div>
           )}
 
-          <div className="prose prose-invert max-w-none mb-2 prose-p:text-white/80 prose-pre:bg-black/40 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-md">
-            <p className="whitespace-pre-wrap">{message.content}</p>
+          {/* Message content with code block formatting */}
+          <div className="mb-2 text-white/80 leading-relaxed">
+            {formatMessageContent(message.content)}
           </div>
 
           {message.role === "assistant" && (
@@ -291,12 +590,12 @@ const ChatMessage = ({ message }: { message: Message }) => {
                 {isCopied ? (
                   <>
                     <Check className="h-3 w-3" />
-                    <span>Copied</span>
+                    Copied
                   </>
                 ) : (
                   <>
                     <Copy className="h-3 w-3" />
-                    <span>Copy</span>
+                    Copy All
                   </>
                 )}
               </button>
