@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -37,6 +39,71 @@ type LMStudioChatResponse struct {
 type LMStudioChoice struct {
 	Message      LMStudioMessage `json:"message"`
 	FinishReason string          `json:"finish_reason"`
+}
+
+// cleanModelResponse removes thinking tags and other unwanted content from model responses
+func cleanModelResponse(response string) string {
+	// Remove <think>...</think> blocks (multiline)
+	thinkRegex := regexp.MustCompile(`(?s)<think>.*?</think>`)
+	cleaned := thinkRegex.ReplaceAllString(response, "")
+
+	// Remove other common thinking patterns - using Go-compatible regex
+	patterns := []string{
+		`(?s)<thinking>.*?</thinking>`,     // <thinking> tags
+		`(?s)<thought>.*?</thought>`,       // <thought> tags
+		`(?s)<reasoning>.*?</reasoning>`,   // <reasoning> tags
+		`(?s)\[thinking\].*?\[/thinking\]`, // [thinking] tags
+		`(?s)\[thought\].*?\[/thought\]`,   // [thought] tags
+		`(?s)<!-- thinking:.*?-->`,         // HTML comment thinking
+	}
+
+	for _, pattern := range patterns {
+		regex := regexp.MustCompile(pattern)
+		cleaned = regex.ReplaceAllString(cleaned, "")
+	}
+
+	// Handle lines starting with "Thinking:" or "Let me think" - using line-by-line approach
+	lines := strings.Split(cleaned, "\n")
+	filteredLines := make([]string, 0, len(lines))
+	skipUntilBlank := false
+
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+
+		// Check if this line starts a thinking block
+		if strings.HasPrefix(strings.ToLower(trimmedLine), "thinking:") ||
+			strings.HasPrefix(strings.ToLower(trimmedLine), "let me think") {
+			skipUntilBlank = true
+			continue
+		}
+
+		// If we're in skip mode, continue until we hit a blank line or uppercase letter start
+		if skipUntilBlank {
+			if trimmedLine == "" {
+				skipUntilBlank = false
+				continue
+			}
+			// Check if line starts with uppercase (likely new paragraph/section)
+			if len(trimmedLine) > 0 && trimmedLine[0] >= 'A' && trimmedLine[0] <= 'Z' {
+				skipUntilBlank = false
+				filteredLines = append(filteredLines, line)
+			}
+			continue
+		}
+
+		filteredLines = append(filteredLines, line)
+	}
+
+	cleaned = strings.Join(filteredLines, "\n")
+
+	// Clean up extra whitespace and newlines
+	cleaned = strings.TrimSpace(cleaned)
+
+	// Remove multiple consecutive newlines
+	multiNewlineRegex := regexp.MustCompile(`\n{3,}`)
+	cleaned = multiNewlineRegex.ReplaceAllString(cleaned, "\n\n")
+
+	return cleaned
 }
 
 // ChatWithLMStudio sends a chat request to LM Studio with specific parameters
@@ -116,5 +183,12 @@ func (c *LMStudioConnector) ChatWithLMStudio(model string, message string, confi
 		return "", fmt.Errorf("no response from LM Studio")
 	}
 
-	return chatResp.Choices[0].Message.Content, nil
+	rawResponse := chatResp.Choices[0].Message.Content
+	fmt.Printf("Raw response from LM Studio: %s\n", rawResponse)
+
+	// Clean the response to remove thinking tags and unwanted content
+	cleanedResponse := cleanModelResponse(rawResponse)
+	fmt.Printf("Cleaned response: %s\n", cleanedResponse)
+
+	return cleanedResponse, nil
 }
