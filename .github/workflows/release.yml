@@ -1,0 +1,190 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        include:
+          - platform: 'darwin/universal'
+            os: 'macos-latest'
+            name: 'darwin-universal'
+          - platform: 'windows/amd64'
+            os: 'windows-latest'
+            name: 'windows-amd64'
+          - platform: 'linux/amd64'
+            os: 'ubuntu-latest'
+            name: 'linux-amd64'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux/amd64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build application
+        run: |
+          wails build -platform ${{ matrix.platform }} -clean
+
+      - name: Package for macOS
+        if: matrix.platform == 'darwin/universal'
+        run: |
+          # Install create-dmg
+          brew install create-dmg
+          
+          # Create DMG
+          mkdir -p dist
+          create-dmg \
+            --volname "Lumen AI Installer" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Lumen AI.app" 175 190 \
+            --hide-extension "Lumen AI.app" \
+            --app-drop-link 425 190 \
+            "dist/Lumen-AI-${{ github.ref_name }}-darwin-universal.dmg" \
+            "build/bin/"
+
+      - name: Package for Windows
+        if: matrix.platform == 'windows/amd64'
+        run: |
+          mkdir dist
+          Compress-Archive -Path "build/bin/Lumen AI.exe" -DestinationPath "dist/Lumen-AI-${{ github.ref_name }}-windows-amd64.zip"
+
+      - name: Package for Linux
+        if: matrix.platform == 'linux/amd64'
+        run: |
+          # Install dependencies for AppImage creation
+          sudo apt-get install -y fuse imagemagick
+          
+          # Create AppImage structure
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          
+          # Copy binary
+          cp "build/bin/Lumen AI" AppDir/usr/bin/lumen-ai
+          chmod +x AppDir/usr/bin/lumen-ai
+          
+          # Create desktop file
+          cat > AppDir/usr/share/applications/lumen-ai.desktop << EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Lumen AI
+          Comment=AI-powered coding assistant
+          Exec=lumen-ai
+          Icon=lumen-ai
+          Categories=Development;Utility;
+          Terminal=false
+          EOF
+          
+          # Create placeholder icon
+          convert -size 256x256 xc:"#4F46E5" -fill white -gravity center -pointsize 72 -annotate 0 "LA" AppDir/usr/share/icons/hicolor/256x256/apps/lumen-ai.png
+          
+          # Create AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export PATH="${HERE}/usr/bin/:${PATH}"
+          exec "${HERE}/usr/bin/lumen-ai" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+          
+          # Download and use appimagetool
+          wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          
+          # Create AppImage
+          mkdir -p dist
+          ARCH=x86_64 ./appimagetool AppDir "dist/Lumen-AI-${{ github.ref_name }}-linux-amd64.AppImage"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}-build
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Lumen AI ${{ github.ref_name }}
+          body: |
+            ## 🚀 Lumen AI ${{ github.ref_name }}
+            
+            ### Download for your platform:
+            
+            - **macOS** 📱: Download the `.dmg` file
+            - **Windows** 🪟: Download the `.zip` file and extract
+            - **Linux** 🐧: Download the `.AppImage` file and make it executable
+            
+            ### What's New:
+            - ✨ Feature improvements
+            - 🐛 Bug fixes
+            - 🔧 Performance optimizations
+            
+            ### Installation:
+            
+            **macOS**: Double-click the DMG and drag Lumen AI to Applications
+            **Windows**: Extract the ZIP and run the executable
+            **Linux**: `chmod +x Lumen-AI-*-linux-amd64.AppImage && ./Lumen-AI-*-linux-amd64.AppImage`
+            
+            ### Requirements:
+            - For local models: Ollama or LM Studio
+            - For cloud models: API keys for OpenAI/Anthropic/Google
+            
+            **Full changelog**: https://github.com/${{ github.repository }}/compare/v1.0.0...${{ github.ref_name }}
+          files: |
+            artifacts/**/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

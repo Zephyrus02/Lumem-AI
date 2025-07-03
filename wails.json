@@ -1,13 +1,20 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "myproject",
-  "outputfilename": "myproject",
+  "version": "2",
+  "name": "Lumen AI",
+  "outputfilename": "Lumen AI",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
+  "frontend:dev": "npm run dev",
   "frontend:dev:watcher": "npm run dev",
-  "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Zephyrus02",
+    "name": "Aneesh Raskar",
     "email": "aneeshraskar@gmail.com"
+  },
+  "info": {
+    "productName": "Lumen AI",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 Aneesh Raskar",
+    "comments": "Illuminate your digital world with AI at your fingertips."
   }
 }
