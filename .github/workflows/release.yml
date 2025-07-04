@@ -51,7 +51,67 @@ jobs:
         if: matrix.platform == 'linux/amd64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev imagemagick
+
+      - name: Install Windows dependencies
+        if: matrix.platform == 'windows/amd64'
+        run: |
+          choco install imagemagick -y
+
+      - name: Prepare icons for macOS
+        if: matrix.platform == 'darwin/universal'
+        run: |
+          # Create required directories
+          mkdir -p build/appicon.iconset
+          
+          # Verify app.png exists
+          if [ ! -f "app.png" ]; then
+            echo "Error: app.png not found!"
+            exit 1
+          fi
+          
+          # Create different sizes for the iconset using app.png
+          sips -z 16 16 app.png --out build/appicon.iconset/icon_16x16.png
+          sips -z 32 32 app.png --out build/appicon.iconset/icon_16x16@2x.png
+          sips -z 32 32 app.png --out build/appicon.iconset/icon_32x32.png
+          sips -z 64 64 app.png --out build/appicon.iconset/icon_32x32@2x.png
+          sips -z 128 128 app.png --out build/appicon.iconset/icon_128x128.png
+          sips -z 256 256 app.png --out build/appicon.iconset/icon_128x128@2x.png
+          sips -z 256 256 app.png --out build/appicon.iconset/icon_256x256.png
+          sips -z 512 512 app.png --out build/appicon.iconset/icon_256x256@2x.png
+          sips -z 512 512 app.png --out build/appicon.iconset/icon_512x512.png
+          sips -z 1024 1024 app.png --out build/appicon.iconset/icon_512x512@2x.png
+          
+          # Convert to icns
+          iconutil -c icns build/appicon.iconset -o build/appicon.icns
+          
+          # Copy original icon
+          cp app.png build/appicon.png
+          
+          echo "macOS icons prepared successfully"
+
+      - name: Prepare icons for Windows
+        if: matrix.platform == 'windows/amd64'
+        run: |
+          # Create Windows icon directory
+          mkdir -p build/windows
+          
+          # Convert PNG to ICO using ImageMagick
+          magick convert app.png -define icon:auto-resize=256,128,64,48,32,16 build/windows/icon.ico
+          
+          # Copy original icon
+          cp app.png build/appicon.png
+          
+          echo "Windows icons prepared successfully"
+        shell: bash
+
+      - name: Prepare icons for Linux
+        if: matrix.platform == 'linux/amd64'
+        run: |
+          # Just copy the PNG for Linux
+          mkdir -p build
+          cp app.png build/appicon.png
+          echo "Linux icons prepared successfully"
 
       - name: Install frontend dependencies
         run: |
@@ -62,21 +122,38 @@ jobs:
         run: |
           wails build -platform ${{ matrix.platform }} -clean
 
+      - name: Verify build output
+        run: |
+          echo "Build completed. Contents of build/bin:"
+          ls -la build/bin/
+          
       - name: Package for macOS
         if: matrix.platform == 'darwin/universal'
         run: |
           # Install create-dmg
           brew install create-dmg
           
-          # Create DMG
+          # Create dist directory
           mkdir -p dist
+          
+          # Find the .app file (handle both possible names)
+          if [ -f "build/bin/Lumen-AI.app" ]; then
+            APP_NAME="Lumen-AI.app"
+          elif [ -f "build/bin/Lumen AI.app" ]; then
+            APP_NAME="Lumen AI.app"
+          else
+            echo "Error: No .app file found!"
+            exit 1
+          fi
+          
+          # Create DMG
           create-dmg \
             --volname "Lumen AI Installer" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
-            --icon "Lumen AI.app" 175 190 \
-            --hide-extension "Lumen AI.app" \
+            --icon "$APP_NAME" 175 190 \
+            --hide-extension "$APP_NAME" \
             --app-drop-link 425 190 \
             "dist/Lumen-AI-${{ github.ref_name }}-darwin-universal.dmg" \
             "build/bin/"
@@ -85,22 +162,47 @@ jobs:
         if: matrix.platform == 'windows/amd64'
         run: |
           mkdir dist
-          Compress-Archive -Path "build/bin/Lumen AI.exe" -DestinationPath "dist/Lumen-AI-${{ github.ref_name }}-windows-amd64.zip"
+          
+          # Find the .exe file (handle both possible names)
+          if (Test-Path "build/bin/Lumen-AI.exe") {
+            $exeName = "Lumen-AI.exe"
+          } elseif (Test-Path "build/bin/Lumen AI.exe") {
+            $exeName = "Lumen AI.exe"
+          } else {
+            Write-Host "Error: No .exe file found!"
+            Get-ChildItem "build/bin/"
+            exit 1
+          }
+          
+          Compress-Archive -Path "build/bin/$exeName" -DestinationPath "dist/Lumen-AI-${{ github.ref_name }}-windows-amd64.zip"
 
       - name: Package for Linux
         if: matrix.platform == 'linux/amd64'
         run: |
           # Install dependencies for AppImage creation
-          sudo apt-get install -y fuse imagemagick
+          sudo apt-get install -y fuse
           
           # Create AppImage structure
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           
+          # Find the binary (handle both possible names)
+          if [ -f "build/bin/Lumen-AI" ]; then
+            BINARY_NAME="Lumen-AI"
+          elif [ -f "build/bin/Lumen AI" ]; then
+            BINARY_NAME="Lumen AI"
+          else
+            echo "Error: No binary found!"
+            exit 1
+          fi
+          
           # Copy binary
-          cp "build/bin/Lumen AI" AppDir/usr/bin/lumen-ai
+          cp "build/bin/$BINARY_NAME" AppDir/usr/bin/lumen-ai
           chmod +x AppDir/usr/bin/lumen-ai
+          
+          # Use the app icon
+          cp app.png AppDir/usr/share/icons/hicolor/256x256/apps/lumen-ai.png
           
           # Create desktop file
           cat > AppDir/usr/share/applications/lumen-ai.desktop << EOF
@@ -113,9 +215,6 @@ jobs:
           Categories=Development;Utility;
           Terminal=false
           EOF
-          
-          # Create placeholder icon
-          convert -size 256x256 xc:"#4F46E5" -fill white -gravity center -pointsize 72 -annotate 0 "LA" AppDir/usr/share/icons/hicolor/256x256/apps/lumen-ai.png
           
           # Create AppRun
           cat > AppDir/AppRun << 'EOF'

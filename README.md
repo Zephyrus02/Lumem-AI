@@ -51,7 +51,7 @@ Lumen AI is a powerful, native desktop application that brings AI-powered coding
 ### Download & Install
 
 1. **Go to Releases**
-   - Visit our [GitHub Releases page](https://github.com/yourusername/lumen-ai/releases)
+   - Visit our [GitHub Releases page](https://github.com/Zephyrus02/Lumem-AI/releases)
    - Download the latest version for your operating system
 
 2. **Choose Your Platform**
@@ -244,8 +244,8 @@ ollama pull llama3.2
 We welcome contributions! Here's how you can help:
 
 ### Ways to Contribute
-- 🐛 **Report Bugs**: Found an issue? [Open an issue](https://github.com/yourusername/lumen-ai/issues)
-- 💡 **Feature Requests**: Have ideas? [Start a discussion](https://github.com/yourusername/lumen-ai/discussions)
+- 🐛 **Report Bugs**: Found an issue? [Open an issue](https://github.com/Zephyrus02/Lumem-AI/issues)
+- 💡 **Feature Requests**: Have ideas? [Start a discussion](https://github.com/Zephyrus02/Lumem-AI/discussions)
 - 📖 **Documentation**: Help improve our docs
 - 🔧 **Code**: Submit pull requests with improvements
 
@@ -253,7 +253,7 @@ We welcome contributions! Here's how you can help:
 ```bash
 # Fork the repository on GitHub
 # Clone your fork
-git clone https://github.com/your-username/lumen-ai.git
+git https://github.com/Zephyrus02/Lumem-AI.git
 
 # Create a feature branch
 git checkout -b feature/amazing-feature
@@ -288,15 +288,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/lumen-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/lumen-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Zephyrus02/Lumem-AI/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Zephyrus02/Lumem-AI/discussions)
 - **Documentation**: [docs.lumen-ai.com](https://docs.lumen-ai.com)
 
 ---
 
 <div align="center">
-  <p>Built with ❤️ for developers who love AI-powered productivity</p>
+  <p>Built with ❤️ by the Aneesh Raskar</p>
   <p>⭐ Star this project if you find it useful!</p>
   
-  **[Download Latest Release](https://github.com/yourusername/lumen-ai/releases/latest)**
+  **[Download Latest Release](https://github.com/Zephyrus02/Lumem-AI/releases/latest)**
 </div>
