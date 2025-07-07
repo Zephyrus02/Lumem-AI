@@ -203,7 +203,7 @@ function DockItem({
           animate={{ width: 16, height: 4, borderRadius: 999 }}
           exit={{ width: 4, height: 4 }}
           transition={{
-            type: "linear",
+            type: "spring",
             stiffness: 300,
             damping: 20,
           }}
