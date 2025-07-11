@@ -13,21 +13,8 @@ on:
 
 jobs:
   build:
-    name: Build for ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    
-    strategy:
-      matrix:
-        include:
-          - platform: 'darwin/universal'
-            os: 'macos-latest'
-            name: 'darwin-universal'
-          - platform: 'windows/amd64'
-            os: 'windows-latest'
-            name: 'windows-amd64'
-          - platform: 'linux/amd64'
-            os: 'ubuntu-latest'
-            name: 'linux-amd64'
+    name: Build for macOS
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -47,30 +34,13 @@ jobs:
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
-      - name: Install Linux dependencies
-        if: matrix.platform == 'linux/amd64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev imagemagick
-
-      - name: Install Windows dependencies
-        if: matrix.platform == 'windows/amd64'
-        run: |
-          choco install imagemagick -y
-
       - name: Prepare icons for macOS
-        if: matrix.platform == 'darwin/universal'
         run: |
-          # Create required directories
           mkdir -p build/appicon.iconset
-          
-          # Verify app.png exists
           if [ ! -f "app.png" ]; then
             echo "Error: app.png not found!"
             exit 1
           fi
-          
-          # Create different sizes for the iconset using app.png
           sips -z 16 16 app.png --out build/appicon.iconset/icon_16x16.png
           sips -z 32 32 app.png --out build/appicon.iconset/icon_16x16@2x.png
           sips -z 32 32 app.png --out build/appicon.iconset/icon_32x32.png
@@ -81,37 +51,8 @@ jobs:
           sips -z 512 512 app.png --out build/appicon.iconset/icon_256x256@2x.png
           sips -z 512 512 app.png --out build/appicon.iconset/icon_512x512.png
           sips -z 1024 1024 app.png --out build/appicon.iconset/icon_512x512@2x.png
-          
-          # Convert to icns
           iconutil -c icns build/appicon.iconset -o build/appicon.icns
-          
-          # Copy original icon
           cp app.png build/appicon.png
-          
-          echo "macOS icons prepared successfully"
-
-      - name: Prepare icons for Windows
-        if: matrix.platform == 'windows/amd64'
-        run: |
-          # Create Windows icon directory
-          mkdir -p build/windows
-          
-          # Convert PNG to ICO using ImageMagick
-          magick convert app.png -define icon:auto-resize=256,128,64,48,32,16 build/windows/icon.ico
-          
-          # Copy original icon
-          cp app.png build/appicon.png
-          
-          echo "Windows icons prepared successfully"
-        shell: bash
-
-      - name: Prepare icons for Linux
-        if: matrix.platform == 'linux/amd64'
-        run: |
-          # Just copy the PNG for Linux
-          mkdir -p build
-          cp app.png build/appicon.png
-          echo "Linux icons prepared successfully"
 
       - name: Install frontend dependencies
         run: |
@@ -120,33 +61,18 @@ jobs:
 
       - name: Build application
         run: |
-          wails build -platform ${{ matrix.platform }} -clean
+          wails build -platform darwin/universal -clean
 
-      - name: Verify build output
+      - name: Create DMG package
         run: |
-          echo "Build completed. Contents of build/bin:"
-          ls -la build/bin/
-          
-      - name: Package for macOS
-        if: matrix.platform == 'darwin/universal'
-        run: |
-          # Install create-dmg
           brew install create-dmg
-          
-          # Create dist directory
           mkdir -p dist
-          
-          # Find the .app file (handle both possible names)
-          if [ -f "build/bin/Lumen-AI.app" ]; then
-            APP_NAME="Lumen-AI.app"
-          elif [ -f "build/bin/Lumen AI.app" ]; then
-            APP_NAME="Lumen AI.app"
-          else
-            echo "Error: No .app file found!"
+          APP_NAME="Lumen-AI.app"
+          if [ ! -f "build/bin/$APP_NAME" ]; then
+            echo "Error: $APP_NAME not found!"
+            ls -la build/bin/
             exit 1
           fi
-          
-          # Create DMG
           create-dmg \
             --volname "Lumen AI Installer" \
             --window-pos 200 120 \
@@ -158,88 +84,11 @@ jobs:
             "dist/Lumen-AI-${{ github.ref_name }}-darwin-universal.dmg" \
             "build/bin/"
 
-      - name: Package for Windows
-        if: matrix.platform == 'windows/amd64'
-        run: |
-          mkdir dist
-          
-          # Find the .exe file (handle both possible names)
-          if (Test-Path "build/bin/Lumen-AI.exe") {
-            $exeName = "Lumen-AI.exe"
-          } elseif (Test-Path "build/bin/Lumen AI.exe") {
-            $exeName = "Lumen AI.exe"
-          } else {
-            Write-Host "Error: No .exe file found!"
-            Get-ChildItem "build/bin/"
-            exit 1
-          }
-          
-          Compress-Archive -Path "build/bin/$exeName" -DestinationPath "dist/Lumen-AI-${{ github.ref_name }}-windows-amd64.zip"
-
-      - name: Package for Linux
-        if: matrix.platform == 'linux/amd64'
-        run: |
-          # Install dependencies for AppImage creation
-          sudo apt-get install -y fuse
-          
-          # Create AppImage structure
-          mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/share/applications
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          
-          # Find the binary (handle both possible names)
-          if [ -f "build/bin/Lumen-AI" ]; then
-            BINARY_NAME="Lumen-AI"
-          elif [ -f "build/bin/Lumen AI" ]; then
-            BINARY_NAME="Lumen AI"
-          else
-            echo "Error: No binary found!"
-            exit 1
-          fi
-          
-          # Copy binary
-          cp "build/bin/$BINARY_NAME" AppDir/usr/bin/lumen-ai
-          chmod +x AppDir/usr/bin/lumen-ai
-          
-          # Use the app icon
-          cp app.png AppDir/usr/share/icons/hicolor/256x256/apps/lumen-ai.png
-          
-          # Create desktop file
-          cat > AppDir/usr/share/applications/lumen-ai.desktop << EOF
-          [Desktop Entry]
-          Type=Application
-          Name=Lumen AI
-          Comment=AI-powered coding assistant
-          Exec=lumen-ai
-          Icon=lumen-ai
-          Categories=Development;Utility;
-          Terminal=false
-          EOF
-          
-          # Create AppRun
-          cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE=${SELF%/*}
-          export PATH="${HERE}/usr/bin/:${PATH}"
-          exec "${HERE}/usr/bin/lumen-ai" "$@"
-          EOF
-          chmod +x AppDir/AppRun
-          
-          # Download and use appimagetool
-          wget -O appimagetool "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
-          chmod +x appimagetool
-          
-          # Create AppImage
-          mkdir -p dist
-          ARCH=x86_64 ./appimagetool AppDir "dist/Lumen-AI-${{ github.ref_name }}-linux-amd64.AppImage"
-
-          - name: Upload artifacts
-            uses: actions/upload-artifact@v4   
-            with:
-              name: ${{ matrix.name }}-build
-              path: dist/*
-
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: dist/*
 
   release:
     needs: build
@@ -247,12 +96,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: Download DMG artifact
         uses: actions/download-artifact@v4
         with:
+          name: macos-dmg
           path: artifacts
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
@@ -260,31 +110,19 @@ jobs:
           body: |
             ## 🚀 Lumen AI ${{ github.ref_name }}
             
-            ### Download for your platform:
-            
-            - **macOS** 📱: Download the `.dmg` file
-            - **Windows** 🪟: Download the `.zip` file and extract
-            - **Linux** 🐧: Download the `.AppImage` file and make it executable
+            ### Download for macOS:
+            - 📱 DMG: Download and double-click to install
             
             ### What's New:
             - ✨ Feature improvements
             - 🐛 Bug fixes
             - 🔧 Performance optimizations
             
-            ### Installation:
-            
-            **macOS**: Double-click the DMG and drag Lumen AI to Applications
-            **Windows**: Extract the ZIP and run the executable
-            **Linux**: `chmod +x Lumen-AI-*-linux-amd64.AppImage && ./Lumen-AI-*-linux-amd64.AppImage`
-            
             ### Requirements:
-            - For local models: Ollama or LM Studio
-            - For cloud models: API keys for OpenAI/Anthropic/Google
-            
+            - For local models: Ollama, LM Studio
+            - For cloud models: API keys (OpenAI, Anthropic, Google)
+
             **Full changelog**: https://github.com/${{ github.repository }}/compare/v1.0.0...${{ github.ref_name }}
-          files: |
-            artifacts/**/*
-          draft: false
-          prerelease: false
+          files: artifacts/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
