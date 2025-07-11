@@ -8,10 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 // Console log for debugging
 console.log("Application starting...")
 
-// Directly use the key from your .env.local file
-// Try environment variable first, fall back to hardcoded value
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 
-  "pk_test_YXdha2UtbGVtbWluZy0zOC5jbGVyay5hY2NvdW50cy5k";
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 console.log("Using Clerk key:", PUBLISHABLE_KEY ? "Key found" : "Key missing");
 
@@ -21,7 +18,6 @@ if (!PUBLISHABLE_KEY) {
 } else {
   console.log("Clerk key found, initializing app...")
   
-  // Wait for DOM to be fully ready
   document.addEventListener('DOMContentLoaded', () => {
     const rootElement = document.getElementById('root')
     

@@ -109,7 +109,7 @@ func cleanModelResponse(response string) string {
 // ChatWithLMStudio sends a chat request to LM Studio with specific parameters
 func (c *LMStudioConnector) ChatWithLMStudio(model string, message string, config map[string]interface{}) (string, error) {
 	client := &http.Client{
-		Timeout: 60 * time.Second,
+		Timeout: 300 * time.Second,
 	}
 
 	// Prepare the request payload

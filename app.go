@@ -199,7 +199,7 @@ func (a *App) chatWithOllama(model string, message string, config ModelConfig) (
 	// First, do a quick health check
 	fmt.Printf("Performing health check for Ollama...\n")
 	if err := connector.QuickHealthCheck(); err != nil {
-		return "", fmt.Errorf("Ollama health check failed: %v. Please ensure Ollama is running and accessible", err)
+		return "", fmt.Errorf("ollama health check failed: %v. please ensure Ollama is running and accessible", err)
 	}
 
 	// Convert our config to Ollama's format
@@ -233,7 +233,7 @@ func (a *App) chatWithOllama(model string, message string, config ModelConfig) (
 		if duration > 110*time.Second {
 			return "", fmt.Errorf("request timed out after %v. The model '%s' may be too large for your system or Ollama may be overloaded. Try:\n1. Using a smaller/faster model\n2. Reducing the context size (num_ctx)\n3. Restarting Ollama\n4. Checking system resources", duration, model)
 		}
-		return "", fmt.Errorf("Ollama chat failed: %v", err)
+		return "", fmt.Errorf("ollama chat failed: %v", err)
 	}
 
 	fmt.Printf("Successfully received response from Ollama (length: %d chars)\n", len(response))
@@ -242,21 +242,25 @@ func (a *App) chatWithOllama(model string, message string, config ModelConfig) (
 
 // chatWithLMStudio sends a chat message to LM Studio with the specified configuration
 func (a *App) chatWithLMStudio(model string, message string, config ModelConfig) (string, error) {
-	// Use the LM Studio connector for actual chat
-	connector := connectors.NewLMStudioConnector("http://localhost:1234")
+    // Use the LM Studio connector for actual chat
+    connector := connectors.NewLMStudioConnector("http://localhost:1234")
 
-	// Convert our config to LM Studio's format (OpenAI compatible)
-	lmStudioConfig := map[string]interface{}{
-		"temperature": config.Temperature,
-		"top_p":      config.TopP,
-		"max_tokens": config.NumCtx,
-	}
+    // Map config to OpenAI-compatible parameters
+    lmStudioConfig := map[string]interface{}{
+        "temperature": config.Temperature,
+        "top_p":       config.TopP,
+    }
 
-	// Only add stop sequences if they exist
-	if len(config.Stop) > 0 {
-		lmStudioConfig["stop"] = config.Stop
-	}
+    // Only add max_tokens if you want to limit output length (not context window)
+    if config.NumCtx > 0 {
+        lmStudioConfig["max_tokens"] = config.NumCtx
+    }
 
-	// Call the LM Studio chat function
-	return connector.ChatWithLMStudio(model, message, lmStudioConfig)
+    // Only add stop sequences if they exist
+    if len(config.Stop) > 0 {
+        lmStudioConfig["stop"] = config.Stop
+    }
+
+    // Call the LM Studio chat function
+    return connector.ChatWithLMStudio(model, message, lmStudioConfig)
 }
