@@ -9,18 +9,20 @@ mkdir -p build/release
 
 # Package macOS (DMG)
 echo "📱 Creating macOS DMG..."
-if [ -f "build/bin/darwin/Lumen-AI.app" ]; then
+if [ -d "build/bin/darwin/Lumen-AI.app" ]; then
     if command -v create-dmg &> /dev/null; then
         create-dmg \
-          --volname "Lumen AI Installer" \
-          --window-pos 200 120 \
-          --window-size 600 400 \
-          --icon-size 100 \
-          --icon "Lumen-AI.app" 175 190 \
-          --hide-extension "Lumen-AI.app" \
-          --app-drop-link 425 190 \
-          "build/release/Lumen-AI-${VERSION}-darwin-universal.dmg" \
-          "build/bin/darwin/"
+        --volname "Lumen AI Installer" \
+        --window-pos 200 120 \
+        --window-size 600 400 \
+        --icon-size 100 \
+        --icon "Lumen-AI.app" 175 190 \
+        --app-drop-link 425 190 \
+        --background "build/assets/dmg-background.png" \
+        --hide-extension "Lumen-AI.app" \
+        "build/release/Lumen-AI-${VERSION}-darwin-universal.dmg" \
+        "build/bin/darwin/"
+
     else
         echo "create-dmg not found, creating ZIP instead..."
         cd build/bin/darwin/

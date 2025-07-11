@@ -12,7 +12,7 @@ wails build -platform darwin/universal -clean
 
 # Organize build
 mkdir -p build/bin/darwin
-if [ -f "build/bin/Lumen AI.app" ]; then
+if [ -d "build/bin/Lumen AI.app" ]; then
     mv "build/bin/Lumen AI.app" "build/bin/darwin/Lumen-AI.app"
 fi
 
