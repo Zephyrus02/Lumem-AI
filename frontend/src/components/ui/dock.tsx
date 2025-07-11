@@ -31,9 +31,9 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   useUser,
-  useClerk,
   UserButton,
 } from "@clerk/clerk-react";
+import { StartLogin } from "../../../wailsjs/go/main/App"; 
 
 const DOCK_HEIGHT = 128;
 const DEFAULT_MAGNIFICATION = 80;
@@ -83,7 +83,7 @@ function DockProvider({ children, value }: DockProviderProps) {
 function useDock() {
   const context = useContext(DockContext);
   if (!context) {
-    throw new Error("useDock must be used within an DockProvider");
+    throw new Error("useDock must be used within a DockProvider");
   }
   return context;
 }
@@ -139,8 +139,6 @@ function Dock({
   );
 }
 
-// Modify the DockItem function to track click state:
-
 function DockItem({
   children,
   className,
@@ -150,7 +148,6 @@ function DockItem({
   const ref = useRef<HTMLDivElement>(null);
   const { distance, magnification, mouseX, spring } = useDock();
   const isHovered = useMotionValue(0);
-  // Add this state to track if item was clicked
   const [isClicked, setIsClicked] = useState(false);
 
   const mouseDistance = useTransform(mouseX, (val) => {
@@ -166,12 +163,9 @@ function DockItem({
 
   const width = useSpring(widthTransform, spring);
 
-  // Handle click on dock item
   const handleClick = () => {
     setIsClicked(true);
-    // Reset click state after a delay
     setTimeout(() => setIsClicked(false), 2000);
-    // Call the original onClick handler
     onClick?.();
   };
 
@@ -193,7 +187,11 @@ function DockItem({
       aria-haspopup="true"
     >
       {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement<any>, { width, isHovered, isClicked })
+        cloneElement(child as React.ReactElement<any>, {
+          width,
+          isHovered,
+          isClicked,
+        })
       )}
 
       {isActive && (
@@ -265,7 +263,6 @@ function DockIcon({ children, className, ...rest }: DockIconProps) {
   );
 }
 
-// Add this new component for the separator
 function DockSeparator() {
   return (
     <div
@@ -281,7 +278,6 @@ function AppDock() {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user } = useUser();
-  const { openSignIn } = useClerk();
 
   return (
     <Dock className="bg-black/30 backdrop-blur-md border border-white/10">
@@ -289,82 +285,58 @@ function AppDock() {
         <DockIcon>
           <Home className="h-6 w-6 text-neutral-200" />
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          Home
-        </DockLabel>
+        <DockLabel>Home</DockLabel>
       </DockItem>
 
-      <DockItem
-        onClick={() => navigate("/docs")}
-        isActive={currentPath === "/docs"}
-      >
+      <DockItem onClick={() => navigate("/docs")} isActive={currentPath === "/docs"}>
         <DockIcon>
           <FileText className="h-6 w-6 text-neutral-200" />
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          Documentation
-        </DockLabel>
+        <DockLabel>Documentation</DockLabel>
       </DockItem>
 
-      <DockItem
-        onClick={() => navigate("/connect")}
-        isActive={currentPath === "/connect"}
-      >
+      <DockItem onClick={() => navigate("/connect")} isActive={currentPath === "/connect"}>
         <DockIcon>
           <Server className="h-6 w-6 text-neutral-200" />
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          Connect LLMs
-        </DockLabel>
+        <DockLabel>Connect LLMs</DockLabel>
       </DockItem>
 
-      <DockItem
-        onClick={() => navigate("/chat")}
-        isActive={currentPath === "/chat"}
-      >
+      <DockItem onClick={() => navigate("/chat")} isActive={currentPath === "/chat"}>
         <DockIcon>
           <MessageSquare className="h-6 w-6 text-neutral-200" />
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          Chat with AI
-        </DockLabel>
+        <DockLabel>Chat with AI</DockLabel>
       </DockItem>
 
-      <DockItem
-        onClick={() => navigate("/settings")}
-        isActive={currentPath === "/settings"}
-      >
+      <DockItem onClick={() => navigate("/settings")} isActive={currentPath === "/settings"}>
         <DockIcon>
           <Settings className="h-6 w-6 text-neutral-200" />
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          Settings
-        </DockLabel>
+        <DockLabel>Settings</DockLabel>
       </DockItem>
 
-      {/* Add vertical separator */}
       <DockSeparator />
 
-      {/* Sign in/Profile button */}
+      {/* Sign In or Profile */}
       <DockItem
         onClick={() => {
           if (!user) {
-            openSignIn(); // Opens Clerk sign-in modal
+            StartLogin(); // ✅ Open Clerk login in external browser
           }
-          // No navigation for logged in users - the UserButton will handle its own clicks
         }}
-        isActive={currentPath === "/profile"}
+        isActive={false}
       >
         <DockIcon>
           {user ? (
             <div onClick={(e) => e.stopPropagation()}>
-              <UserButton 
+              <UserButton
                 afterSignOutUrl="/"
                 appearance={{
                   elements: {
-                    rootBox: 'h-6 w-6',
-                    avatarBox: 'h-6 w-6'
-                  }
+                    rootBox: "h-6 w-6",
+                    avatarBox: "h-6 w-6",
+                  },
                 }}
               />
             </div>
@@ -372,13 +344,10 @@ function AppDock() {
             <LogIn className="h-6 w-6 text-neutral-200" />
           )}
         </DockIcon>
-        <DockLabel className="bg-black/80 text-white border-neutral-800">
-          {user ? "Profile" : "Sign In"}
-        </DockLabel>
+        <DockLabel>{user ? "Profile" : "Sign In"}</DockLabel>
       </DockItem>
     </Dock>
   );
 }
 
-// Update the exports to include the new component
 export { Dock, DockIcon, DockItem, DockLabel, DockSeparator, AppDock };

@@ -7,6 +7,19 @@
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
+  "platform": "darwin/universal",
+  "platformOverrides": {
+    "darwin": {
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "com.aneesh.lumenai",
+            "CFBundleURLSchemes": ["lumenai"]
+          }
+        ]
+      }
+    }
+  },
   "author": {
     "name": "Aneesh Raskar",
     "email": "aneeshraskar@gmail.com"
