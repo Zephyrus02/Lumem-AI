@@ -38,20 +38,18 @@ function App() {
     <Suspense fallback={<LoadingFallback />}>
       <BrowserRouter>
         <ChatProviderWrapper>
-          <PageWrapper>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HeroGeometric />} />
-              <Route path="/docs" element={<DocumentationPage />} />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HeroGeometric />} />
+            <Route path="/docs" element={<DocumentationPage />} />
 
-              {/* Protected Routes */}
-              <Route path="/connect" element={<ConnectLLMPage />} />
-              <Route path="/chat" element={<ChatPage />} />
+            {/* Protected Routes */}
+            <Route path="/connect" element={<ConnectLLMPage />} />
+            <Route path="/chat" element={<ChatPage />} />
 
-              {/* Public/Optional Route */}
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
-          </PageWrapper>
+            {/* Public/Optional Route */}
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
         </ChatProviderWrapper>
       </BrowserRouter>
     </Suspense>

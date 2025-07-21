@@ -357,9 +357,9 @@ export function ConnectLLMPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col bg-[#030303] text-neutral-200 overflow-hidden">
-      {/* Background gradients - PRESERVED */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-purple-500/[0.05] blur-3xl" />
+    <div className="relative h-screen w-full flex flex-col bg-[#030303] text-neutral-200 overflow-hidden">
+      {/* Background gradients */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
 
       {/* Decorative shapes - PRESERVED */}
@@ -494,7 +494,7 @@ export function ConnectLLMPage() {
       </div>
 
       {/* Bottom dock */}
-      <div className="absolute bottom-8 left-0 right-0 z-50">
+      <div className="fixed bottom-8 left-0 right-0 z-50">
         <AppDock />
       </div>
     </div>
