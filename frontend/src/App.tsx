@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense} from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { HeroGeometric } from "@/components/ui/hero";
 import { DocumentationPage } from "@/components/ui/documentation";
@@ -38,18 +38,20 @@ function App() {
     <Suspense fallback={<LoadingFallback />}>
       <BrowserRouter>
         <ChatProviderWrapper>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HeroGeometric />} />
-            <Route path="/docs" element={<DocumentationPage />} />
+          <PageWrapper>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HeroGeometric />} />
+              <Route path="/docs" element={<DocumentationPage />} />
 
-            {/* Protected Routes */}
-            <Route path="/connect" element={<ConnectLLMPage />} />
-            <Route path="/chat" element={<ChatPage />} />
+              {/* Protected Routes */}
+              <Route path="/connect" element={<ConnectLLMPage />} />
+              <Route path="/chat" element={<ChatPage />} />
 
-            {/* Public/Optional Route */}
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
+              {/* Public/Optional Route */}
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </PageWrapper>
         </ChatProviderWrapper>
       </BrowserRouter>
     </Suspense>
