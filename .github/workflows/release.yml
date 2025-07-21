@@ -3,13 +3,13 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., v1.0.0)'
+        description: "Release version (e.g., v1.0.0)"
         required: true
-        default: 'v1.0.0'
+        default: "v1.0.0"
 
 jobs:
   build:
@@ -24,12 +24,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: "1.21"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -61,7 +61,7 @@ jobs:
 
       - name: Build application
         run: |
-          wails build -platform darwin/universal -clean
+          wails build -platform darwin/universal -clean -ldflags="-X main.buildTimeEncryptionKey=${{ secrets.ENCRYPTION_KEY }}"
 
       - name: Create DMG package
         run: |
@@ -109,15 +109,15 @@ jobs:
           name: Lumen AI ${{ github.ref_name }}
           body: |
             ## 🚀 Lumen AI ${{ github.ref_name }}
-            
+
             ### Download for macOS:
             - 📱 DMG: Download and double-click to install
-            
+
             ### What's New:
             - ✨ Feature improvements
             - 🐛 Bug fixes
             - 🔧 Performance optimizations
-            
+
             ### Requirements:
             - For local models: Ollama, LM Studio
             - For cloud models: API keys (OpenAI, Anthropic, Google)

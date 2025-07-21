@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
-	 _ "embed"
 	"fmt"
 	"log"
 	"myproject/connectors"
@@ -17,6 +17,23 @@ import (
 
 //go:embed version.json
 var versionJSON []byte
+
+// This will be set by the Wails build command using ldflags in CI/CD
+var buildTimeEncryptionKey string
+
+// getEncryptionKey safely retrieves the key, prioritizing the build-time injected key
+func getEncryptionKey() string {
+    // If the key was injected at build time, use it.
+    if buildTimeEncryptionKey != "" {
+        return buildTimeEncryptionKey
+    }
+    // Otherwise, fall back to environment variable for local development.
+    err := godotenv.Load()
+    if err != nil {
+        log.Println("Info: .env file not found. This is normal for production builds.")
+    }
+    return os.Getenv("ENCRYPTION_KEY")
+}
 
 // VersionInfo matches the structure of version.json
 type VersionInfo struct {
@@ -74,33 +91,25 @@ var providerConfigs = map[string]ProviderConfig{
 }
 
 func NewApp() *App {
-	// Load .env file from the root directory.
-	// It's okay if it fails, we'll have a fallback.
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Info: .env file not found. This is normal for production builds.")
-	}
+    // Get encryption key. It MUST be 32 bytes for AES-256.
+    encryptionKey := getEncryptionKey()
+    if len(encryptionKey) != 32 {
+        log.Fatalf("Fatal: ENCRYPTION_KEY must be 32 bytes long, but got %d bytes. Ensure it's set in .env for local dev or as a repository secret for builds.", len(encryptionKey))
+    }
 
-	// Get encryption key from environment variable.
-	// It MUST be 32 bytes for AES-256.
-	encryptionKey := os.Getenv("ENCRYPTION_KEY")
-	if len(encryptionKey) != 32 {
-		log.Fatalf("Fatal: ENCRYPTION_KEY environment variable must be 32 bytes long, but got %d bytes.", len(encryptionKey))
-	}
+    app := &App{
+        encryptionKey: encryptionKey,
+    }
 
-	app := &App{
-		encryptionKey: encryptionKey,
-	}
+    // Determine config path
+    home, err := os.UserHomeDir()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Warning: could not find user home directory: %v. Config will not be saved.\n", err)
+    } else {
+        app.configPath = filepath.Join(home, ".lumen", "config.json")
+    }
 
-	// Determine config path
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not find user home directory: %v. Config will not be saved.\n", err)
-	} else {
-		app.configPath = filepath.Join(home, ".lumen", "config.json")
-	}
-
-	return app
+    return app
 }
 
 func (a *App) startup(ctx context.Context) {
