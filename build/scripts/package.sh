@@ -20,13 +20,13 @@ if [ -d "build/bin/darwin/Lumen-AI.app" ]; then
         --app-drop-link 425 190 \
         --background "build/assets/dmg-background.png" \
         --hide-extension "Lumen-AI.app" \
-        "build/release/Lumen-AI-${VERSION}-darwin-universal.dmg" \
+        "build/release/Lumen-AI-${VERSION}.dmg" \
         "build/bin/darwin/"
 
     else
         echo "create-dmg not found, creating ZIP instead..."
         cd build/bin/darwin/
-        zip -r "../../release/Lumen-AI-${VERSION}-darwin-universal.zip" *.app
+        zip -r "../../release/Lumen-AI-${VERSION}.zip" *.app
         cd ../../../
     fi
 else

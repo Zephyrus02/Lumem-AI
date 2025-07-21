@@ -15,7 +15,7 @@ Lumen AI is a powerful, native desktop application that brings AI-powered coding
 
 ### 🤖 AI Model Integration
 - **Local Model Support**: Connect to Ollama and LM Studio for privacy-focused, offline AI assistance
-- **Cloud Model Support**: Integrate with OpenAI (GPT-4o, GPT-3.5), Anthropic (Claude), and Google (Gemini) APIs
+- **Cloud Model Support**: Integrate with OpenAI (GPT), Anthropic (Claude), and Google (Gemini) APIs
 - **Real-time Model Scanning**: Automatically detect and connect to available local models
 - **Dynamic Model Configuration**: Customize temperature, top-p, context length, and other parameters per model
 
@@ -53,25 +53,11 @@ Lumen AI is a powerful, native desktop application that brings AI-powered coding
 1. **Go to Releases**
    - Visit our [GitHub Releases page](https://github.com/Zephyrus02/Lumem-AI/releases)
    - Download the latest version for your operating system
-
-2. **Choose Your Platform**
    
    **macOS** 📱
    ```
-   Download: Lumen-AI-darwin-universal.dmg
+   Download: Lumen-AI-v1.0.0.dmg
    Install: Double-click the DMG and drag Lumen to Applications
-   ```
-   
-   **Windows** 🪟
-   ```
-   Download: Lumen-AI-windows-amd64.exe
-   Install: Run the installer and follow the setup wizard
-   ```
-   
-   **Linux** 🐧
-   ```
-   Download: Lumen-AI-linux-amd64.AppImage
-   Install: Make executable and run: chmod +x Lumen-AI-linux-amd64.AppImage
    ```
 
 ### First Time Setup
@@ -184,20 +170,6 @@ wails build
 - **Secure API**: Encrypted communication with cloud providers
 - **Session Management**: Configurable session timeouts and device management
 
-## 🎨 Customization
-
-### Themes & Appearance
-- Multiple accent color options
-- Customizable interface opacity
-- Adjustable animation preferences
-- Font size and family options
-
-### Keyboard Shortcuts
-- Fully customizable key bindings
-- Context-aware shortcuts
-- Editor-specific commands
-- Application-level hotkeys
-
 ### AI Behavior
 - Temperature and creativity controls
 - Response length preferences
@@ -212,12 +184,6 @@ wails build
 ```bash
 # Allow the app to run
 sudo xattr -r -d com.apple.quarantine /Applications/Lumen.app
-```
-
-**Linux: Permission denied**
-```bash
-# Make AppImage executable
-chmod +x Lumen-AI-linux-amd64.AppImage
 ```
 
 ### Common Runtime Issues
@@ -268,12 +234,7 @@ git commit -m "Add amazing feature"
 git push origin feature/amazing-feature
 ```
 
-## 📖 Documentation
 
-- [User Guide](docs/user-guide.md): Complete guide to using Lumen
-- [API Documentation](docs/api.md): Backend API reference
-- [Component Guide](docs/components.md): Frontend component documentation
-- [Configuration Reference](docs/configuration.md): Settings and customization options
 
 ## 📄 License
 

@@ -14,9 +14,21 @@ import (
 	"github.com/joho/godotenv"
 )
 
+//go:embed version.json
+var versionJSON []byte
+
+// VersionInfo matches the structure of version.json
+type VersionInfo struct {
+	Version     string `json:"version"`
+	BuildNumber int    `json:"buildNumber"`
+	ReleaseDate string `json:"releaseDate"`
+}
+
 // AppInfo holds metadata about the application state.
 type AppInfo struct {
 	Version        string    `json:"version"`
+	BuildNumber    int       `json:"buildNumber"`
+	ReleaseDate    string    `json:"releaseDate"`
 	InstallDate    time.Time `json:"install_date"`
 	LastUpdateDate time.Time `json:"last_update_date"`
 }
@@ -99,34 +111,61 @@ func (a *App) startup(ctx context.Context) {
 
 // loadConfig loads the configuration from disk or creates a new one on first launch.
 func (a *App) loadConfig() error {
+	// Parse the embedded version.json to get current app version details
+	var currentVersionInfo VersionInfo
+	if err := json.Unmarshal(versionJSON, &currentVersionInfo); err != nil {
+		return fmt.Errorf("failed to parse embedded version.json: %w", err)
+	}
+
 	if a.configPath == "" {
 		a.cloudAPIKeys = make(map[string]string)
 		a.modelConfigs = make(map[string]ModelConfig)
-		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		a.appInfo = AppInfo{
+			Version:        currentVersionInfo.Version,
+			BuildNumber:    currentVersionInfo.BuildNumber,
+			ReleaseDate:    currentVersionInfo.ReleaseDate,
+			InstallDate:    time.Now(),
+			LastUpdateDate: time.Now(),
+		}
 		return nil
 	}
 
 	data, err := os.ReadFile(a.configPath)
+	// Handle new installation (config file doesn't exist)
 	if os.IsNotExist(err) {
 		fmt.Println("No config file found, creating a new one at:", a.configPath)
 		a.cloudAPIKeys = make(map[string]string)
 		a.modelConfigs = make(map[string]ModelConfig)
-		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		a.appInfo = AppInfo{
+			Version:        currentVersionInfo.Version,
+			BuildNumber:    currentVersionInfo.BuildNumber,
+			ReleaseDate:    currentVersionInfo.ReleaseDate,
+			InstallDate:    time.Now(),
+			LastUpdateDate: time.Now(),
+		}
 		return a.saveConfig()
 	}
 	if err != nil {
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
 
+	// Handle existing installation (config file exists)
 	var config AppConfig
 	if err := json.Unmarshal(data, &config); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not parse config file, starting fresh: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Warning: could not parse config file, creating a fresh one: %v\n", err)
 		a.cloudAPIKeys = make(map[string]string)
 		a.modelConfigs = make(map[string]ModelConfig)
-		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		a.appInfo = AppInfo{
+			Version:        currentVersionInfo.Version,
+			BuildNumber:    currentVersionInfo.BuildNumber,
+			ReleaseDate:    currentVersionInfo.ReleaseDate,
+			InstallDate:    time.Now(), // Treat as a new install if config was corrupt
+			LastUpdateDate: time.Now(),
+		}
 		return a.saveConfig()
 	}
 
+	// Load existing config into memory
 	a.configMutex.Lock()
 	a.appInfo = config.AppDetails
 	a.cloudAPIKeys = config.CloudAPIKeys
@@ -138,6 +177,18 @@ func (a *App) loadConfig() error {
 		a.modelConfigs = make(map[string]ModelConfig)
 	}
 	a.configMutex.Unlock()
+
+	// Check if the app has been updated by comparing build numbers
+	if a.appInfo.BuildNumber < currentVersionInfo.BuildNumber {
+		fmt.Printf("App updated from v%s (build %d) to v%s (build %d)\n", a.appInfo.Version, a.appInfo.BuildNumber, currentVersionInfo.Version, currentVersionInfo.BuildNumber)
+		a.appInfo.Version = currentVersionInfo.Version
+		a.appInfo.BuildNumber = currentVersionInfo.BuildNumber
+		a.appInfo.ReleaseDate = currentVersionInfo.ReleaseDate
+		a.appInfo.LastUpdateDate = time.Now()
+		if err := a.saveConfig(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error saving updated config: %v\n", err)
+		}
+	}
 
 	fmt.Println("Configuration loaded from", a.configPath)
 	return nil
