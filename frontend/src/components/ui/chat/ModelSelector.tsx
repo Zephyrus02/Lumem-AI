@@ -26,9 +26,19 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   setSelectedProvider,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [expandedProviders, setExpandedProviders] = useState<
+    Record<string, boolean>
+  >({});
   const [availableModels, setAvailableModels] = useState<AvailableModel[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [lastLoadTime, setLastLoadTime] = useState<number>(0);
+
+  const toggleProviderExpansion = (providerId: string) => {
+    setExpandedProviders((prev) => ({
+      ...prev,
+      [providerId]: !prev[providerId],
+    }));
+  };
 
   const loadAvailableModels = async (forceRefresh = false) => {
     const now = Date.now();
@@ -49,7 +59,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         for (const provider of providers) {
           if (provider.type === "local") {
             try {
-              const result = await window.go.main.App.ScanLocalModels(provider.id);
+              const result = await window.go.main.App.ScanLocalModels(
+                provider.id
+              );
               if (result.success && result.models) {
                 result.models.forEach((model: Model) => {
                   models.push({
@@ -65,8 +77,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               console.log(`Failed to load models for ${provider.name}:`, error);
             }
           } else {
-           const cloudModels = await getCloudModels(provider.id);
-           models.push(...cloudModels);
+            const cloudModels = await getCloudModels(provider.id);
+            models.push(...cloudModels);
           }
         }
       } else {
@@ -82,7 +94,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     }
   };
 
-  const getCloudModels = async (providerId: string): Promise<AvailableModel[]> => {
+  const getCloudModels = async (
+    providerId: string
+  ): Promise<AvailableModel[]> => {
     try {
       // @ts-ignore
       const key = await window.go.main.App.GetAPIKey(providerId);
@@ -92,12 +106,16 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         return [];
       }
       // @ts-ignore
-      const cloudModels = await window.go.main.App.ListCloudModels(providerId, key);
+      const cloudModels = await window.go.main.App.ListCloudModels(
+        providerId,
+        key
+      );
       return cloudModels.map((model: Model) => ({
         id: model.name,
         name: model.name,
         provider: providerId,
-        providerName: providers.find(p => p.id === providerId)?.name || providerId,
+        providerName:
+          providers.find((p) => p.id === providerId)?.name || providerId,
       }));
     } catch (error) {
       console.error(`Failed to load models for ${providerId}:`, error);
@@ -106,9 +124,24 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   };
 
   const getFallbackModels = (): AvailableModel[] => [
-    { id: "llama3.2", name: "Llama 3.2", provider: "ollama", providerName: "Ollama" },
-    { id: "codellama", name: "Code Llama", provider: "ollama", providerName: "Ollama" },
-    { id: "mistral", name: "Mistral", provider: "ollama", providerName: "Ollama" },
+    {
+      id: "llama3.2",
+      name: "Llama 3.2",
+      provider: "ollama",
+      providerName: "Ollama",
+    },
+    {
+      id: "codellama",
+      name: "Code Llama",
+      provider: "ollama",
+      providerName: "Ollama",
+    },
+    {
+      id: "mistral",
+      name: "Mistral",
+      provider: "ollama",
+      providerName: "Ollama",
+    },
   ];
 
   useEffect(() => {
@@ -130,7 +163,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const organizedProviders = Object.values(modelsByProvider);
   const currentModel = availableModels.find((m) => m.id === selectedModel);
   const currentModelName = currentModel
-    ? `${currentModel.name}${currentModel.size ? ` (${currentModel.size})` : ""}`
+    ? `${currentModel.name}${
+        currentModel.size ? ` (${currentModel.size})` : ""
+      }`
     : selectedModel || "Select a model";
 
   return (
@@ -150,7 +185,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           ) : (
             <Cpu className="h-3.5 w-3.5 text-indigo-400" />
           )}
-          <span className={cn("text-white/80", !selectedModel && "text-yellow-400")}>
+          <span
+            className={cn("text-white/80", !selectedModel && "text-yellow-400")}
+          >
             {currentModelName}
           </span>
         </span>
@@ -176,7 +213,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   disabled={isLoadingModels}
                   className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <RefreshCw className={`h-3 w-3 ${isLoadingModels ? "animate-spin" : ""}`} />
+                  <RefreshCw
+                    className={`h-3 w-3 ${
+                      isLoadingModels ? "animate-spin" : ""
+                    }`}
+                  />
                   Refresh
                 </button>
               </div>
@@ -190,49 +231,77 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 </div>
               ) : organizedProviders.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="text-white/40 text-sm mb-2">No models found</div>
+                  <div className="text-white/40 text-sm mb-2">
+                    No models found
+                  </div>
                   <div className="text-white/30 text-xs">
-                    Make sure your local providers (Ollama, LM Studio) are running
+                    Make sure your local providers (Ollama, LM Studio) are
+                    running
                   </div>
                 </div>
               ) : (
                 organizedProviders.map((provider) => (
-                  <div key={provider.id} className="mb-2">
-                    <div className="px-3 py-1.5 text-xs font-medium text-white/50 uppercase tracking-wider">
-                      {provider.name} ({provider.models.length})
-                    </div>
-                    {provider.models.map((model) => (
-                      <button
-                        key={`${model.provider}-${model.id}`}
-                        onClick={() => {
-                          setSelectedProvider(model.provider);
-                          setSelectedModel(model.id);
-                          setIsOpen(false);
-                        }}
+                  <div key={provider.id} className="mb-1">
+                    <button
+                      onClick={() => toggleProviderExpansion(provider.id)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-white/60 hover:text-white/80 uppercase tracking-wider hover:bg-white/5 rounded-md transition-colors"
+                    >
+                      <span>
+                        {provider.name} ({provider.models.length})
+                      </span>
+                      <ChevronDown
                         className={cn(
-                          "w-full text-left px-3 py-2 text-sm rounded-md flex items-center justify-between gap-2",
-                          selectedModel === model.id
-                            ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white"
-                            : "hover:bg-white/5 text-white/70"
+                          "h-4 w-4 transition-transform",
+                          expandedProviders[provider.id] ? "rotate-180" : ""
                         )}
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {model.provider === "openai" ||
-                          model.provider === "anthropic" ||
-                          model.provider === "google" ? (
-                            <Cloud className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
-                          ) : (
-                            <Cpu className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" />
-                          )}
-                          <span className="truncate">{model.name}</span>
-                        </div>
-                        {model.size && (
-                          <span className="text-xs text-white/40 flex-shrink-0">
-                            {model.size}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {expandedProviders[provider.id] && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeInOut" }}
+                          className="overflow-hidden pl-2"
+                        >
+                          <div className="py-1">
+                            {provider.models.map((model) => (
+                              <button
+                                key={`${model.provider}-${model.id}`}
+                                onClick={() => {
+                                  setSelectedProvider(model.provider);
+                                  setSelectedModel(model.id);
+                                  setIsOpen(false);
+                                }}
+                                className={cn(
+                                  "w-full text-left px-3 py-2 text-sm rounded-md flex items-center justify-between gap-2",
+                                  selectedModel === model.id
+                                    ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white"
+                                    : "hover:bg-white/5 text-white/70"
+                                )}
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  {model.provider === "openai" ||
+                                  model.provider === "anthropic" ||
+                                  model.provider === "google" ? (
+                                    <Cloud className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" />
+                                  ) : (
+                                    <Cpu className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" />
+                                  )}
+                                  <span className="truncate">{model.name}</span>
+                                </div>
+                                {model.size && (
+                                  <span className="text-xs text-white/40 flex-shrink-0">
+                                    {model.size}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ))
               )}
