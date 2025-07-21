@@ -356,7 +356,6 @@ export function ConnectLLMPage() {
     },
   };
 
-
   return (
     <div className="relative min-h-screen w-full flex flex-col bg-[#030303] text-neutral-200 overflow-hidden">
       {/* Background gradients - PRESERVED */}
@@ -401,7 +400,7 @@ export function ConnectLLMPage() {
             width: isSidebarVisible ? "280px" : "0px",
           }}
           transition={{ duration: 0.3 }}
-          className="h-full border-r border-white/10 bg-black/20 backdrop-blur-md"
+          className="h-full border-r border-white/10 bg-black/20 backdrop-blur-md flex flex-col"
         >
           <div className="p-4 border-b border-white/10 flex items-center">
             <Server className="h-5 w-5 mr-2 text-indigo-400" />
@@ -410,7 +409,7 @@ export function ConnectLLMPage() {
             </h2>
           </div>
 
-          <div className="overflow-y-auto h-[calc(100vh-64px-128px-48px)] pb-4">
+          <div className="flex-1 overflow-y-auto pb-40">
             {/* Simplified Chapter List */}
             {connectLLMData.map((chapter, idx) => (
               <motion.div
@@ -446,7 +445,7 @@ export function ConnectLLMPage() {
 
         {/* Main content */}
         <motion.div
-          className="flex-1 overflow-auto h-[calc(100vh-128px)]"
+          className="flex-1 overflow-auto h-full"
           initial="hidden"
           animate="visible"
           variants={fadeInVariants}
@@ -480,7 +479,7 @@ export function ConnectLLMPage() {
             </div>
           </div>
 
-          <div className="p-6 md:p-8 max-w-5xl mx-auto">
+          <div className="p-6 md:p-8 max-w-5xl mx-auto pb-40">
             <motion.div
               key={activeTopic}
               initial={{ opacity: 0, y: 10 }}

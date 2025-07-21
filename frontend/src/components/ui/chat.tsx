@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Send,
-  Paperclip,
-  MessageSquare,
-  Bot,
-  ArrowLeft,
-} from "lucide-react";
+import { Send, Paperclip, MessageSquare, Bot, ArrowLeft } from "lucide-react";
 import { ChatMessage } from "./chat/ChatMessage";
 import { ModelSelector } from "./chat/ModelSelector";
 import { FileAttachment } from "./chat/FileAttachment";
@@ -63,13 +57,20 @@ export function ChatPage() {
   const { selectedProvider, selectedModel } = chatContext;
 
   // States
-  const [activeConversation, setActiveConversation] = useState<string | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>(sampleConversations);
+  const [activeConversation, setActiveConversation] = useState<string | null>(
+    null
+  );
+  const [conversations, setConversations] =
+    useState<Conversation[]>(sampleConversations);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [localSelectedProvider, setLocalSelectedProvider] = useState(selectedProvider || "ollama");
-  const [localSelectedModel, setLocalSelectedModel] = useState(selectedModel || "");
+  const [localSelectedProvider, setLocalSelectedProvider] = useState(
+    selectedProvider || "ollama"
+  );
+  const [localSelectedModel, setLocalSelectedModel] = useState(
+    selectedModel || ""
+  );
   const [isSidebarVisible, setSidebarVisible] = useState(true);
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
 
@@ -91,7 +92,9 @@ export function ChatPage() {
   // Load conversation when active changes
   useEffect(() => {
     if (activeConversation) {
-      const conversation = conversations.find((c) => c.id === activeConversation);
+      const conversation = conversations.find(
+        (c) => c.id === activeConversation
+      );
       if (conversation) {
         setMessages(conversation.messages);
         setLocalSelectedModel(conversation.model);
@@ -103,7 +106,8 @@ export function ChatPage() {
   }, [activeConversation, conversations]);
 
   const handleSendMessage = async () => {
-    if ((!inputMessage.trim() && attachedFiles.length === 0) || isGenerating) return;
+    if ((!inputMessage.trim() && attachedFiles.length === 0) || isGenerating)
+      return;
 
     if (!localSelectedModel) {
       alert("Please select a model first from the dropdown above.");
@@ -173,12 +177,25 @@ export function ChatPage() {
 
       let errorMessage = `Sorry, I encountered an error: ${error}`;
 
-      if (String(error).includes("timeout") || String(error).includes("deadline exceeded")) {
-        errorMessage += "\n\n💡 Suggestions:\n• Try using a smaller/faster model\n• Reduce the context size in model configuration\n• Restart Ollama: `ollama serve`\n• Check if your system has enough RAM";
+      if (
+        String(error).includes("timeout") ||
+        String(error).includes("deadline exceeded")
+      ) {
+        errorMessage +=
+          "\n\n💡 Suggestions:\n• Try using a smaller/faster model\n• Reduce the context size in model configuration\n• Restart Ollama: `ollama serve`\n• Check if your system has enough RAM";
       } else if (String(error).includes("connection refused")) {
-        errorMessage += "\n\n💡 Please start Ollama first:\n• Run `ollama serve` in terminal\n• Make sure the model is pulled: `ollama pull " + localSelectedModel + "`";
-      } else if (String(error).includes("model") && String(error).includes("not found")) {
-        errorMessage += "\n\n💡 The model might not be available:\n• Run `ollama pull " + localSelectedModel + "` to download it\n• Check available models: `ollama list`";
+        errorMessage +=
+          "\n\n💡 Please start Ollama first:\n• Run `ollama serve` in terminal\n• Make sure the model is pulled: `ollama pull " +
+          localSelectedModel +
+          "`";
+      } else if (
+        String(error).includes("model") &&
+        String(error).includes("not found")
+      ) {
+        errorMessage +=
+          "\n\n💡 The model might not be available:\n• Run `ollama pull " +
+          localSelectedModel +
+          "` to download it\n• Check available models: `ollama list`";
       }
 
       const errorMsg: Message = {
@@ -237,7 +254,8 @@ export function ChatPage() {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        const content = typeof e.target?.result === "string" ? e.target.result : undefined;
+        const content =
+          typeof e.target?.result === "string" ? e.target.result : undefined;
 
         fileArray.push({
           id: `${file.name}-${file.size}-${Date.now()}`,
@@ -356,7 +374,9 @@ export function ChatPage() {
                   viewBox="0 0 18 14"
                   fill="none"
                   className="transition-transform"
-                  style={{ transform: isSidebarVisible ? "none" : "scaleX(-1)" }}
+                  style={{
+                    transform: isSidebarVisible ? "none" : "scaleX(-1)",
+                  }}
                 >
                   <path
                     d="M1 1H17M1 7H17M1 13H17"
@@ -389,7 +409,13 @@ export function ChatPage() {
                 className="p-2 rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors"
                 title="New Chat"
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
                   <path
                     d="M8 3.33334V12.6667M3.33333 8H12.6667"
                     stroke="currentColor"
@@ -415,11 +441,15 @@ export function ChatPage() {
                   Start a New Conversation
                 </h3>
                 <p className="text-white/50 max-w-sm mb-4">
-                  Ask questions, get creative responses, or have a discussion with your selected AI model.
+                  Ask questions, get creative responses, or have a discussion
+                  with your selected AI model.
                 </p>
                 <div className="text-sm text-white/40 bg-black/20 rounded-lg p-3 border border-white/10">
                   <p className="font-medium mb-1">Currently selected:</p>
-                  <p>{localSelectedProvider} - {localSelectedModel || "No model selected"}</p>
+                  <p>
+                    {localSelectedProvider} -{" "}
+                    {localSelectedModel || "No model selected"}
+                  </p>
                   {!localSelectedModel && (
                     <p className="text-yellow-400 text-xs mt-2">
                       ⚠️ Please select a model from the dropdown above
@@ -434,7 +464,7 @@ export function ChatPage() {
                 ))}
 
                 {isGenerating && (
-                  <div className="py-6 px-4 sm:px-6 border-b border-white/10 bg-black/20">
+                  <div className="py-6 px-4 sm:px-6 border-b border-white/10">
                     <div className="max-w-4xl mx-auto flex gap-4">
                       <div className="flex-shrink-0 mt-1">
                         <div className="w-8 h-8 rounded-md bg-gradient-to-br from-indigo-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center">
@@ -500,7 +530,10 @@ export function ChatPage() {
 
                 <button
                   onClick={handleSendMessage}
-                  disabled={(!inputMessage.trim() && attachedFiles.length === 0) || isGenerating}
+                  disabled={
+                    (!inputMessage.trim() && attachedFiles.length === 0) ||
+                    isGenerating
+                  }
                   className="absolute right-3 bottom-3 p-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Send className="h-4 w-4" />
@@ -517,7 +550,8 @@ export function ChatPage() {
               />
 
               <div className="mt-2 text-xs text-white/40 text-center">
-                {localSelectedModel} may produce inaccurate information. Press Enter to send, Shift+Enter for new line.
+                {localSelectedModel} may produce inaccurate information. Press
+                Enter to send, Shift+Enter for new line.
               </div>
             </div>
           </div>

@@ -33,7 +33,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         const codeContent = part.slice(3, -3);
         const lines = codeContent.split("\n");
         const language = lines[0].trim();
-        const code = lines.slice(language ? 1 : 0).join("\n").trim();
+        const code = lines
+          .slice(language ? 1 : 0)
+          .join("\n")
+          .trim();
 
         return (
           <div key={index} className="my-4 relative group">
@@ -98,10 +101,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={cn(
-        "py-6 px-4 sm:px-6 border-b border-white/10",
-        message.role === "assistant" ? "bg-black/20" : ""
-      )}
+      className={cn("py-6 px-4 sm:px-6 border-b border-white/10")}
     >
       <div className="max-w-4xl mx-auto flex gap-4">
         <div className="flex-shrink-0 mt-1">

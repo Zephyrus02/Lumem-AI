@@ -1,11 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { ChevronRight, ChevronDown, BookOpen, ArrowLeft, Search, X } from 'lucide-react';
-import { AppDock } from './dock';
-import documentationJson from '@/assets/data/documentation.json';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import {
+  ChevronRight,
+  ChevronDown,
+  BookOpen,
+  ArrowLeft,
+  Search,
+  X,
+} from "lucide-react";
+import { AppDock } from "./dock";
+import documentationJson from "@/assets/data/documentation.json";
 
 // Types for our documentation data
 type Chapter = {
@@ -23,70 +30,87 @@ type Topic = {
 // Function to transform JSON content into React components
 function renderContent(content: any): React.ReactNode {
   if (!content) return null;
-  
+
   return (
     <div>
-      {content.title && <h2 className="text-2xl font-bold mb-4">{content.title}</h2>}
-      
-      {content.paragraphs && content.paragraphs.map((paragraph: string, idx: number) => (
-        <p key={idx} className="mb-4">{paragraph}</p>
-      ))}
-      
+      {content.title && (
+        <h2 className="text-2xl font-bold mb-4">{content.title}</h2>
+      )}
+
+      {content.paragraphs &&
+        content.paragraphs.map((paragraph: string, idx: number) => (
+          <p key={idx} className="mb-4">
+            {paragraph}
+          </p>
+        ))}
+
       {content.description && <p className="mb-4">{content.description}</p>}
-      
-      {content.sections && content.sections.map((section: any, idx: number) => (
-        <div key={idx}>
-          {section.title && (
-            <h3 className="text-xl font-bold mb-2 mt-6">{section.title}</h3>
-          )}
-          
-          {section.type === 'ordered-list' && (
-            <ol className="list-decimal pl-6 mb-4 space-y-2">
-              {section.items.map((item: string, itemIdx: number) => (
-                <li key={itemIdx}>{item}</li>
-              ))}
-            </ol>
-          )}
-          
-          {section.type === 'unordered-list' && (
-            <ul className="list-disc pl-6 mb-4 space-y-1">
-              {section.items.map((item: string, itemIdx: number) => (
-                <li key={itemIdx}>{item}</li>
-              ))}
-            </ul>
-          )}
-          
-          {section.type === 'code' && (
-            <div className="bg-black/40 p-4 rounded-md mb-6">
-              <pre className="text-sm text-white/80 whitespace-pre-wrap">
-                {section.content}
-              </pre>
-            </div>
-          )}
-          
-          {section.type === 'alert' && (
-            <div className={`bg-${section.alertType}-500/10 border border-${section.alertType}-500/20 rounded-md p-4 mb-6`}>
-              <h4 className="font-semibold mb-2">{section.alertTitle}</h4>
-              <p>{section.alertContent}</p>
-            </div>
-          )}
-        </div>
-      ))}
-      
+
+      {content.sections &&
+        content.sections.map((section: any, idx: number) => (
+          <div key={idx}>
+            {section.title && (
+              <h3 className="text-xl font-bold mb-2 mt-6">{section.title}</h3>
+            )}
+
+            {section.type === "ordered-list" && (
+              <ol className="list-decimal pl-6 mb-4 space-y-2">
+                {section.items.map((item: string, itemIdx: number) => (
+                  <li key={itemIdx}>{item}</li>
+                ))}
+              </ol>
+            )}
+
+            {section.type === "unordered-list" && (
+              <ul className="list-disc pl-6 mb-4 space-y-1">
+                {section.items.map((item: string, itemIdx: number) => (
+                  <li key={itemIdx}>{item}</li>
+                ))}
+              </ul>
+            )}
+
+            {section.type === "code" && (
+              <div className="bg-black/40 p-4 rounded-md mb-6">
+                <pre className="text-sm text-white/80 whitespace-pre-wrap">
+                  {section.content}
+                </pre>
+              </div>
+            )}
+
+            {section.type === "alert" && (
+              <div
+                className={`bg-${section.alertType}-500/10 border border-${section.alertType}-500/20 rounded-md p-4 mb-6`}
+              >
+                <h4 className="font-semibold mb-2">{section.alertTitle}</h4>
+                <p>{section.alertContent}</p>
+              </div>
+            )}
+          </div>
+        ))}
+
       {content.shortcuts && (
         <div className="grid grid-cols-2 gap-4 mb-6">
           {content.shortcuts.map((shortcutSection: any, idx: number) => (
             <div key={idx} className="col-span-2 md:col-span-1">
-              <h3 className="text-lg font-bold mb-2">{shortcutSection.title}</h3>
+              <h3 className="text-lg font-bold mb-2">
+                {shortcutSection.title}
+              </h3>
               <div className="bg-black/40 rounded-md p-4 space-y-3">
                 {shortcutSection.items.map((item: any, itemIdx: number) => (
-                  <div key={itemIdx} className="flex justify-between items-center">
+                  <div
+                    key={itemIdx}
+                    className="flex justify-between items-center"
+                  >
                     <span>{item.action}</span>
                     <div>
                       {item.keys.map((key: string, keyIdx: number) => (
                         <span key={keyIdx}>
-                          <span className="bg-white/10 px-2 py-1 rounded text-white/90">{key}</span>
-                          {keyIdx < item.keys.length - 1 && <span className="text-white/50 mx-1">/</span>}
+                          <span className="bg-white/10 px-2 py-1 rounded text-white/90">
+                            {key}
+                          </span>
+                          {keyIdx < item.keys.length - 1 && (
+                            <span className="text-white/50 mx-1">/</span>
+                          )}
                         </span>
                       ))}
                     </div>
@@ -106,8 +130,8 @@ const documentationData: Chapter[] = documentationJson.map((chapter: any) => ({
   ...chapter,
   topics: chapter.topics.map((topic: any) => ({
     ...topic,
-    content: renderContent(topic.content)
-  }))
+    content: renderContent(topic.content),
+  })),
 }));
 
 type SearchResult = {
@@ -185,15 +209,21 @@ function ElegantShape({
 }
 
 export function DocumentationPage() {
-  const [activeChapter, setActiveChapter] = useState<string>(documentationData[0].id);
-  const [activeTopic, setActiveTopic] = useState<string>(documentationData[0].topics[0].id);
-  const [expandedChapters, setExpandedChapters] = useState<Record<string, boolean>>({
+  const [activeChapter, setActiveChapter] = useState<string>(
+    documentationData[0].id
+  );
+  const [activeTopic, setActiveTopic] = useState<string>(
+    documentationData[0].topics[0].id
+  );
+  const [expandedChapters, setExpandedChapters] = useState<
+    Record<string, boolean>
+  >({
     [documentationData[0].id]: true,
   });
   const [isSidebarVisible, setSidebarVisible] = useState(true);
-  
+
   // Search functionality
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
@@ -206,8 +236,12 @@ export function DocumentationPage() {
   };
 
   // Find current chapter and topic
-  const currentChapter = documentationData.find((chapter) => chapter.id === activeChapter);
-  const currentTopic = currentChapter?.topics.find((topic) => topic.id === activeTopic);
+  const currentChapter = documentationData.find(
+    (chapter) => chapter.id === activeChapter
+  );
+  const currentTopic = currentChapter?.topics.find(
+    (topic) => topic.id === activeTopic
+  );
 
   // Search functionality
   useEffect(() => {
@@ -222,26 +256,26 @@ export function DocumentationPage() {
 
     // Search through all chapters and topics
     const results: SearchResult[] = [];
-    documentationData.forEach(chapter => {
+    documentationData.forEach((chapter) => {
       // Search in chapter titles
       if (chapter.title.toLowerCase().includes(query)) {
-        chapter.topics.forEach(topic => {
+        chapter.topics.forEach((topic) => {
           results.push({
             chapterId: chapter.id,
             topicId: topic.id,
             chapterTitle: chapter.title,
-            topicTitle: topic.title
+            topicTitle: topic.title,
           });
         });
       } else {
         // Search in topic titles
-        chapter.topics.forEach(topic => {
+        chapter.topics.forEach((topic) => {
           if (topic.title.toLowerCase().includes(query)) {
             results.push({
               chapterId: chapter.id,
               topicId: topic.id,
               chapterTitle: chapter.title,
-              topicTitle: topic.title
+              topicTitle: topic.title,
             });
           }
         });
@@ -255,36 +289,35 @@ export function DocumentationPage() {
   const handleSearchResultClick = (result: SearchResult) => {
     setActiveChapter(result.chapterId);
     setActiveTopic(result.topicId);
-    setExpandedChapters(prev => ({
+    setExpandedChapters((prev) => ({
       ...prev,
-      [result.chapterId]: true
+      [result.chapterId]: true,
     }));
-    setSearchQuery('');
+    setSearchQuery("");
     setIsSearching(false);
   };
 
   // Clear search
   const clearSearch = () => {
-    setSearchQuery('');
+    setSearchQuery("");
     setIsSearching(false);
   };
 
   // Animation variants
   const fadeInVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
-      transition: { duration: 0.4 } 
+      transition: { duration: 0.4 },
     },
   };
-
 
   return (
     <div className="relative min-h-screen w-full flex flex-col bg-[#030303] text-neutral-200 overflow-hidden">
       {/* Background gradients */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/80 pointer-events-none" />
-      
+
       {/* Decorative shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <ElegantShape
@@ -312,24 +345,26 @@ export function DocumentationPage() {
           className="left-[5%] md:left-[10%] bottom-[20%] md:bottom-[25%]"
         />
       </div>
-      
+
       <div className="flex-1 flex relative z-10 overflow-hidden">
         {/* Left Sidebar - Chapters */}
-        <motion.div 
+        <motion.div
           initial={{ x: -20, opacity: 0 }}
-          animate={{ 
+          animate={{
             x: isSidebarVisible ? 0 : -280,
             opacity: isSidebarVisible ? 1 : 0,
-            width: isSidebarVisible ? '280px' : '0px',
+            width: isSidebarVisible ? "280px" : "0px",
           }}
           transition={{ duration: 0.3 }}
-          className="h-full border-r border-white/10 bg-black/20 backdrop-blur-md"
+          className="h-full border-r border-white/10 bg-black/20 backdrop-blur-md flex flex-col"
         >
           <div className="p-4 border-b border-white/10 flex items-center">
             <BookOpen className="h-5 w-5 mr-2 text-indigo-400" />
-            <h2 className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300">Documentation</h2>
+            <h2 className="font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300">
+              Documentation
+            </h2>
           </div>
-          
+
           {/* Search Bar */}
           <div className="p-3 border-b border-white/10">
             <div className="relative">
@@ -353,8 +388,8 @@ export function DocumentationPage() {
               )}
             </div>
           </div>
-          
-          <div className="overflow-y-auto h-[calc(100vh-64px-128px-48px)] pb-4">
+
+          <div className="flex-1 overflow-y-auto pb-40">
             {/* Search Results */}
             {isSearching ? (
               <div className="py-2">
@@ -369,8 +404,12 @@ export function DocumentationPage() {
                         onClick={() => handleSearchResultClick(result)}
                         className="w-full text-left px-4 py-2 text-sm hover:bg-white/5 transition-colors"
                       >
-                        <div className="text-indigo-300">{result.topicTitle}</div>
-                        <div className="text-xs text-neutral-500">in {result.chapterTitle}</div>
+                        <div className="text-indigo-300">
+                          {result.topicTitle}
+                        </div>
+                        <div className="text-xs text-neutral-500">
+                          in {result.chapterTitle}
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -384,8 +423,8 @@ export function DocumentationPage() {
               // Regular Chapter/Topic List
               <>
                 {documentationData.map((chapter, idx) => (
-                  <motion.div 
-                    key={chapter.id} 
+                  <motion.div
+                    key={chapter.id}
                     className="mb-1"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -400,8 +439,8 @@ export function DocumentationPage() {
                       className={cn(
                         "w-full text-left px-4 py-2 flex items-center justify-between",
                         "hover:bg-white/5 transition-colors",
-                        chapter.id === activeChapter 
-                          ? "bg-gradient-to-r from-indigo-500/10 to-rose-500/10 border-l-2 border-indigo-500/50" 
+                        chapter.id === activeChapter
+                          ? "bg-gradient-to-r from-indigo-500/10 to-rose-500/10 border-l-2 border-indigo-500/50"
                           : ""
                       )}
                     >
@@ -412,7 +451,7 @@ export function DocumentationPage() {
                         <ChevronRight className="h-4 w-4 text-neutral-400" />
                       )}
                     </button>
-                    
+
                     {expandedChapters[chapter.id] && (
                       <div className="pl-4 py-1">
                         {chapter.topics.map((topic) => (
@@ -443,8 +482,8 @@ export function DocumentationPage() {
         </motion.div>
 
         {/* Main content */}
-        <motion.div 
-          className="flex-1 overflow-auto h-[calc(100vh-128px)]"
+        <motion.div
+          className="flex-1 overflow-auto h-full"
           initial="hidden"
           animate="visible"
           variants={fadeInVariants}
@@ -452,32 +491,38 @@ export function DocumentationPage() {
           <div className="sticky top-0 z-10 bg-black/50 backdrop-blur-md border-b border-white/10">
             {/* Main header row */}
             <div className="p-4 flex items-center">
-              <button 
+              <button
                 onClick={() => setSidebarVisible(!isSidebarVisible)}
                 className="p-2 rounded-md hover:bg-white/10 mr-2"
               >
-                <ArrowLeft className={`h-5 w-5 transition-transform ${!isSidebarVisible ? 'rotate-180' : ''}`} />
+                <ArrowLeft
+                  className={`h-5 w-5 transition-transform ${
+                    !isSidebarVisible ? "rotate-180" : ""
+                  }`}
+                />
               </button>
               <div className="flex-1">
-                <div className="text-sm text-neutral-400">{currentChapter?.title}</div>
+                <div className="text-sm text-neutral-400">
+                  {currentChapter?.title}
+                </div>
                 <h1 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300">
                   {currentTopic?.title}
                 </h1>
               </div>
             </div>
-            
+
             {/* Top Search Bar - Only visible when sidebar is collapsed */}
-            <motion.div 
+            <motion.div
               initial={{ height: 0, opacity: 0 }}
-              animate={{ 
-                height: !isSidebarVisible ? 'auto' : 0,
-                opacity: !isSidebarVisible ? 1 : 0
+              animate={{
+                height: !isSidebarVisible ? "auto" : 0,
+                opacity: !isSidebarVisible ? 1 : 0,
               }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
+              transition={{
+                type: "spring",
+                stiffness: 300,
                 damping: 30,
-                opacity: { duration: 0.2, delay: !isSidebarVisible ? 0.1 : 0 }
+                opacity: { duration: 0.2, delay: !isSidebarVisible ? 0.1 : 0 },
               }}
               className="overflow-hidden"
             >
@@ -503,7 +548,7 @@ export function DocumentationPage() {
                   )}
                 </div>
               </div>
-              
+
               {/* Search Results Dropdown for top search */}
               {isSearching && !isSidebarVisible && searchResults.length > 0 && (
                 <div className="absolute left-0 right-0 bg-black/80 backdrop-blur-md border-b border-white/10 max-h-[50vh] overflow-y-auto z-20">
@@ -518,8 +563,12 @@ export function DocumentationPage() {
                           onClick={() => handleSearchResultClick(result)}
                           className="w-full text-left p-2 rounded text-sm hover:bg-white/10 transition-colors"
                         >
-                          <div className="text-indigo-300">{result.topicTitle}</div>
-                          <div className="text-xs text-neutral-500">in {result.chapterTitle}</div>
+                          <div className="text-indigo-300">
+                            {result.topicTitle}
+                          </div>
+                          <div className="text-xs text-neutral-500">
+                            in {result.chapterTitle}
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -528,8 +577,8 @@ export function DocumentationPage() {
               )}
             </motion.div>
           </div>
-          
-          <div className="p-6 md:p-8 max-w-4xl mx-auto">
+
+          <div className="p-6 md:p-8 max-w-4xl mx-auto pb-40">
             <motion.div
               key={activeTopic}
               initial={{ opacity: 0, y: 10 }}

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	 _ "embed"
 	"fmt"
 	"log"
 	"myproject/connectors"
