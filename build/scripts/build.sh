@@ -16,7 +16,7 @@ rm -rf build/bin/*
 
 # Build for macOS (Universal Binary)
 echo "📱 Building for macOS..."
-wails build -platform darwin/universal -clean
+wails build -platform darwin/universal -clean -ldflags="-X main.buildTimeEncryptionKey=$ENCRYPTION_KEY"
 
 # Organize build
 mkdir -p build/bin/darwin

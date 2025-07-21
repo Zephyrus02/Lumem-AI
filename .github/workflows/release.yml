@@ -60,8 +60,15 @@ jobs:
           npm install
 
       - name: Build application
+        env:
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: |
-          wails build -platform darwin/universal -clean -ldflags="-X main.buildTimeEncryptionKey=${{ secrets.ENCRYPTION_KEY }}"
+          if [ -z "$ENCRYPTION_KEY" ]; then
+            echo "❌ ENCRYPTION_KEY is not set or is empty!"
+            exit 1
+          fi
+          echo "🔐 ENCRYPTION_KEY is set with ${#ENCRYPTION_KEY} characters"
+          wails build -platform darwin/universal -clean -ldflags="-X main.buildTimeEncryptionKey=$ENCRYPTION_KEY"
 
       - name: Create DMG package
         run: |
@@ -112,11 +119,6 @@ jobs:
 
             ### Download for macOS:
             - 📱 DMG: Download and double-click to install
-
-            ### What's New:
-            - ✨ Feature improvements
-            - 🐛 Bug fixes
-            - 🔧 Performance optimizations
 
             ### Requirements:
             - For local models: Ollama, LM Studio
