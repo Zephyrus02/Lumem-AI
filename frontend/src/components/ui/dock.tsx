@@ -26,14 +26,8 @@ import {
   Server,
   MessageSquare,
   Settings,
-  LogIn,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  useUser,
-  UserButton,
-} from "@clerk/clerk-react";
-import { StartLogin } from "../../../wailsjs/go/main/App"; 
 
 const DOCK_HEIGHT = 128;
 const DEFAULT_MAGNIFICATION = 80;
@@ -277,7 +271,6 @@ function AppDock() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user } = useUser();
 
   return (
     <Dock className="bg-black/30 backdrop-blur-md border border-white/10">
@@ -316,36 +309,6 @@ function AppDock() {
         <DockLabel>Settings</DockLabel>
       </DockItem>
 
-      <DockSeparator />
-
-      {/* Sign In or Profile */}
-      <DockItem
-        onClick={() => {
-          if (!user) {
-            StartLogin(); // ✅ Open Clerk login in external browser
-          }
-        }}
-        isActive={false}
-      >
-        <DockIcon>
-          {user ? (
-            <div onClick={(e) => e.stopPropagation()}>
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    rootBox: "h-6 w-6",
-                    avatarBox: "h-6 w-6",
-                  },
-                }}
-              />
-            </div>
-          ) : (
-            <LogIn className="h-6 w-6 text-neutral-200" />
-          )}
-        </DockIcon>
-        <DockLabel>{user ? "Profile" : "Sign In"}</DockLabel>
-      </DockItem>
     </Dock>
   );
 }

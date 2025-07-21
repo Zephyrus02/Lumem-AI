@@ -2,19 +2,42 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"myproject/connectors"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/joho/godotenv"
 )
+
+// AppInfo holds metadata about the application state.
+type AppInfo struct {
+	Version        string    `json:"version"`
+	InstallDate    time.Time `json:"install_date"`
+	LastUpdateDate time.Time `json:"last_update_date"`
+}
+
+// AppConfig defines the structure of our configuration file.
+type AppConfig struct {
+	AppDetails   AppInfo              `json:"app_details"`
+	CloudAPIKeys map[string]string    `json:"cloud_api_keys"`
+	ModelConfigs map[string]ModelConfig `json:"model_configs"`
+}
 
 type App struct {
 	ctx           context.Context
-	modelConfigs  map[string]ModelConfig
 	configMutex   sync.RWMutex
-	authToken     string
+	configPath    string
+	encryptionKey string
+
+	// In-memory representation of the config
+	appInfo      AppInfo
+	cloudAPIKeys map[string]string
+	modelConfigs map[string]ModelConfig
 }
 
 type ProviderConfig struct {
@@ -38,33 +61,164 @@ var providerConfigs = map[string]ProviderConfig{
 }
 
 func NewApp() *App {
-	return &App{
-		modelConfigs: make(map[string]ModelConfig),
+	// Load .env file from the root directory.
+	// It's okay if it fails, we'll have a fallback.
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Info: .env file not found. This is normal for production builds.")
 	}
+
+	// Get encryption key from environment variable.
+	// It MUST be 32 bytes for AES-256.
+	encryptionKey := os.Getenv("ENCRYPTION_KEY")
+	if len(encryptionKey) != 32 {
+		log.Fatalf("Fatal: ENCRYPTION_KEY environment variable must be 32 bytes long, but got %d bytes.", len(encryptionKey))
+	}
+
+	app := &App{
+		encryptionKey: encryptionKey,
+	}
+
+	// Determine config path
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not find user home directory: %v. Config will not be saved.\n", err)
+	} else {
+		app.configPath = filepath.Join(home, ".lumen", "config.json")
+	}
+
+	return app
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	if err := a.loadConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "Fatal error managing config: %v\n", err)
+	}
 }
 
-//export StartLogin
-//export StartLogin
-func (a *App) StartLogin() {
-    loginURL := "https://lumen-website-mauve.vercel.app/login?desktop=1"
-    fmt.Println("Opening login URL:", loginURL)
-    runtime.BrowserOpenURL(a.ctx, loginURL)
+// loadConfig loads the configuration from disk or creates a new one on first launch.
+func (a *App) loadConfig() error {
+	if a.configPath == "" {
+		a.cloudAPIKeys = make(map[string]string)
+		a.modelConfigs = make(map[string]ModelConfig)
+		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		return nil
+	}
+
+	data, err := os.ReadFile(a.configPath)
+	if os.IsNotExist(err) {
+		fmt.Println("No config file found, creating a new one at:", a.configPath)
+		a.cloudAPIKeys = make(map[string]string)
+		a.modelConfigs = make(map[string]ModelConfig)
+		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		return a.saveConfig()
+	}
+	if err != nil {
+		return fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	var config AppConfig
+	if err := json.Unmarshal(data, &config); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not parse config file, starting fresh: %v\n", err)
+		a.cloudAPIKeys = make(map[string]string)
+		a.modelConfigs = make(map[string]ModelConfig)
+		a.appInfo = AppInfo{Version: "1.0.0", InstallDate: time.Now()}
+		return a.saveConfig()
+	}
+
+	a.configMutex.Lock()
+	a.appInfo = config.AppDetails
+	a.cloudAPIKeys = config.CloudAPIKeys
+	a.modelConfigs = config.ModelConfigs
+	if a.cloudAPIKeys == nil {
+		a.cloudAPIKeys = make(map[string]string)
+	}
+	if a.modelConfigs == nil {
+		a.modelConfigs = make(map[string]ModelConfig)
+	}
+	a.configMutex.Unlock()
+
+	fmt.Println("Configuration loaded from", a.configPath)
+	return nil
 }
 
+// saveConfig saves the current in-memory configuration to a file on disk.
+func (a *App) saveConfig() error {
+	if a.configPath == "" {
+		return fmt.Errorf("config path not set, cannot save")
+	}
 
-// Store the token from the deep link
-func (a *App) SetAuthToken(token string) {
-	fmt.Println("🔐 Clerk token stored:", token)
-	a.authToken = token
+	a.configMutex.Lock()
+	defer a.configMutex.Unlock()
+
+	a.appInfo.LastUpdateDate = time.Now()
+
+	config := AppConfig{
+		AppDetails:   a.appInfo,
+		CloudAPIKeys: a.cloudAPIKeys,
+		ModelConfigs: a.modelConfigs,
+	}
+
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %w", err)
+	}
+
+	dir := filepath.Dir(a.configPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	if err := os.WriteFile(a.configPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	fmt.Println("Configuration saved to", a.configPath)
+	return nil
 }
 
-//export GetAuthToken
-func (a *App) GetAuthToken() string {
-	return a.authToken
+// SaveAPIKey encrypts and saves a cloud provider's API key.
+func (a *App) SaveAPIKey(provider string, apiKey string) {
+	if apiKey == "" {
+		a.configMutex.Lock()
+		delete(a.cloudAPIKeys, provider)
+		a.configMutex.Unlock()
+	} else {
+		encryptedKey, err := EncryptString(apiKey, a.encryptionKey)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error encrypting API key for %s: %v\n", provider, err)
+			return
+		}
+		a.configMutex.Lock()
+		a.cloudAPIKeys[provider] = encryptedKey
+		a.configMutex.Unlock()
+	}
+
+	if err := a.saveConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error saving config after updating API key: %v\n", err)
+	}
+}
+
+// GetAPIKey retrieves and decrypts a cloud provider's API key.
+func (a *App) GetAPIKey(provider string) (string, error) {
+	a.configMutex.RLock()
+	encryptedKey, ok := a.cloudAPIKeys[provider]
+	a.configMutex.RUnlock()
+
+	if !ok {
+		return "", fmt.Errorf("API key for %s not found", provider)
+	}
+	if encryptedKey == "" {
+		return "", nil
+	}
+
+	decryptedKey, err := DecryptString(encryptedKey, a.encryptionKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to decrypt API key for %s", provider)
+	}
+
+	return decryptedKey, nil
 }
 
 // Model scanning logic
@@ -94,6 +248,20 @@ func (a *App) ScanLocalModels(provider string) connectors.ScanResult {
 	}
 }
 
+// ConnectCloudModel tests and saves the API key for a cloud provider.
+func (a *App) ConnectCloudModel(provider string, apiKey string) error {
+	connector := connectors.NewCloudConnector(provider, apiKey)
+	if err := connector.TestConnection(); err != nil {
+		return err
+	}
+
+	a.configMutex.Lock()
+	a.cloudAPIKeys[provider] = apiKey
+	a.configMutex.Unlock()
+
+	return nil
+}
+
 // ModelConfig defines model parameters
 type ModelConfig struct {
 	Temperature    float64  `json:"temperature"`
@@ -109,6 +277,10 @@ func (a *App) SaveModelConfig(provider string, model string, config ModelConfig)
 	a.configMutex.Lock()
 	a.modelConfigs[key] = config
 	a.configMutex.Unlock()
+
+	if err := a.saveConfig(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error saving model config: %v\n", err)
+	}
 
 	switch provider {
 	case "ollama":
@@ -155,9 +327,34 @@ func (a *App) ChatWithModel(provider string, model string, message string) (stri
 		return a.chatWithOllama(model, message, config)
 	case "lmstudio":
 		return a.chatWithLMStudio(model, message, config)
+	case "openai", "anthropic", "google":
+		apiKey, err := a.GetAPIKey(provider)
+		if err != nil {
+			return "", err
+		}
+		connector := connectors.NewCloudConnector(provider, apiKey)
+
+		configMap := map[string]interface{}{
+			"temperature": config.Temperature,
+			"top_p":       config.TopP,
+			"top_k":       config.TopK,
+			"max_tokens":  config.NumCtx,
+			"stop":        config.Stop,
+		}
+
+		return connector.Chat(model, message, configMap)
 	default:
 		return "", fmt.Errorf("unsupported provider: %s", provider)
 	}
+}
+
+// ListCloudModels lists models for a given cloud provider.
+func (a *App) ListCloudModels(provider string, apiKey string) ([]connectors.Model, error) {
+    if provider == "" || apiKey == "" {
+        return nil, fmt.Errorf("provider and API key are required")
+    }
+    connector := connectors.NewCloudConnector(provider, apiKey)
+    return connector.ListModels()
 }
 
 func (a *App) testOllamaConfig(model string, config ModelConfig) error {

@@ -65,8 +65,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               console.log(`Failed to load models for ${provider.name}:`, error);
             }
           } else {
-            const cloudModels = getCloudModels(provider.id);
-            models.push(...cloudModels);
+           const cloudModels = await getCloudModels(provider.id);
+           models.push(...cloudModels);
           }
         }
       } else {
@@ -82,23 +82,27 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     }
   };
 
-  const getCloudModels = (providerId: string): AvailableModel[] => {
-    const cloudModels: Record<string, AvailableModel[]> = {
-      openai: [
-        { id: "gpt-4o", name: "GPT-4o", provider: "openai", providerName: "OpenAI" },
-        { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "openai", providerName: "OpenAI" },
-        { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "openai", providerName: "OpenAI" },
-      ],
-      anthropic: [
-        { id: "claude-3-5-sonnet-20241022", name: "Claude 3.5 Sonnet", provider: "anthropic", providerName: "Anthropic" },
-        { id: "claude-3-haiku-20240307", name: "Claude 3 Haiku", provider: "anthropic", providerName: "Anthropic" },
-      ],
-      google: [
-        { id: "gemini-2.0-flash-exp", name: "Gemini 2.0 Flash", provider: "google", providerName: "Google" },
-        { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "google", providerName: "Google" },
-      ],
-    };
-    return cloudModels[providerId] || [];
+  const getCloudModels = async (providerId: string): Promise<AvailableModel[]> => {
+    try {
+      // @ts-ignore
+      const key = await window.go.main.App.GetAPIKey(providerId);
+      if (!key) {
+        // Prompt user to add API key
+        console.warn(`API key for ${providerId} not found.`);
+        return [];
+      }
+      // @ts-ignore
+      const cloudModels = await window.go.main.App.ListCloudModels(providerId, key);
+      return cloudModels.map((model: Model) => ({
+        id: model.name,
+        name: model.name,
+        provider: providerId,
+        providerName: providers.find(p => p.id === providerId)?.name || providerId,
+      }));
+    } catch (error) {
+      console.error(`Failed to load models for ${providerId}:`, error);
+      return [];
+    }
   };
 
   const getFallbackModels = (): AvailableModel[] => [

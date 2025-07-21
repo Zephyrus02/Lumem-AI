@@ -6,12 +6,24 @@ export function ChatWithModel(arg1, arg2, arg3) {
   return window['go']['main']['App']['ChatWithModel'](arg1, arg2, arg3);
 }
 
-export function GetAuthToken() {
-  return window['go']['main']['App']['GetAuthToken']();
+export function ConnectCloudModel(arg1, arg2) {
+  return window['go']['main']['App']['ConnectCloudModel'](arg1, arg2);
+}
+
+export function GetAPIKey(arg1) {
+  return window['go']['main']['App']['GetAPIKey'](arg1);
 }
 
 export function GetModelConfig(arg1, arg2) {
   return window['go']['main']['App']['GetModelConfig'](arg1, arg2);
+}
+
+export function ListCloudModels(arg1, arg2) {
+  return window['go']['main']['App']['ListCloudModels'](arg1, arg2);
+}
+
+export function SaveAPIKey(arg1, arg2) {
+  return window['go']['main']['App']['SaveAPIKey'](arg1, arg2);
 }
 
 export function SaveModelConfig(arg1, arg2, arg3) {
@@ -20,12 +32,4 @@ export function SaveModelConfig(arg1, arg2, arg3) {
 
 export function ScanLocalModels(arg1) {
   return window['go']['main']['App']['ScanLocalModels'](arg1);
-}
-
-export function SetAuthToken(arg1) {
-  return window['go']['main']['App']['SetAuthToken'](arg1);
-}
-
-export function StartLogin() {
-  return window['go']['main']['App']['StartLogin']();
 }

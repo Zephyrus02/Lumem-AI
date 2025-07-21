@@ -5,14 +5,16 @@ import {connectors} from '../models';
 
 export function ChatWithModel(arg1:string,arg2:string,arg3:string):Promise<string>;
 
-export function GetAuthToken():Promise<string>;
+export function ConnectCloudModel(arg1:string,arg2:string):Promise<void>;
+
+export function GetAPIKey(arg1:string):Promise<string>;
 
 export function GetModelConfig(arg1:string,arg2:string):Promise<main.ModelConfig>;
+
+export function ListCloudModels(arg1:string,arg2:string):Promise<Array<connectors.Model>>;
+
+export function SaveAPIKey(arg1:string,arg2:string):Promise<void>;
 
 export function SaveModelConfig(arg1:string,arg2:string,arg3:main.ModelConfig):Promise<string>;
 
 export function ScanLocalModels(arg1:string):Promise<connectors.ScanResult>;
-
-export function SetAuthToken(arg1:string):Promise<void>;
-
-export function StartLogin():Promise<void>;
